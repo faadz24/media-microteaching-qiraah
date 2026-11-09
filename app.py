@@ -7,7 +7,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# 2. Injeksi CSS untuk Teks Arab, Pop-up Tooltip + Gambar + Contoh Kalimat SEMUA KATA
+# 2. Injeksi CSS Utamap
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
@@ -50,7 +50,7 @@ st.markdown("""
         margin-bottom: 15px;
     }
     
-    /* GAYA KATA TARGET (17 MUFRODAT UTAMA - GARIS BIRU PUTUS-PUTUS) */
+    /* GAYA KATA TARGET (17 MUFRODAT UTAMA) */
     .vocab-target {
         color: #2563eb;
         font-weight: bold;
@@ -65,7 +65,7 @@ st.markdown("""
         border-radius: 4px;
     }
     
-    /* GAYA KATA PENDUKUNG (SEMUA KATA LAIN DALAM TEKS - GARIS ABU-ABU HALUS) */
+    /* GAYA KATA PENDUKUNG */
     .vocab-regular {
         color: #0f172a;
         cursor: pointer;
@@ -139,9 +139,9 @@ st.markdown("""
 
 DEFAULT_IMG = "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400"
 
-# 3. Database Seluruh Kata dalam Teks (SETIAP KATA memiliki FOTO + CONTOH KALIMAT ARAB & INDONESIA)
+# 3. Database Seluruh Kata dalam Teks
 words_db = {
-    # --- 17 TARGET MUFRODAT UTAMA (FOTO + CONTOH KALIMAT + CTL) ---
+    # --- 17 TARGET MUFRODAT UTAMA ---
     "المَدْرَسَةُ": {"type": "target", "indo": "Sekolah / Madrasah", "ctl": "💡 CTL: Jenjang MA sebelum ke Perguruan Tinggi.", "ar_ex": "يَتَعَلَّمُ الطُّلَّابُ فِي المَدْرَسَةِ الإِسْلَامِيَّةِ.", "id_ex": "Para siswa belajar di madrasah aliyah.", "img_url": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400"},
     "الطُّلَّابُ": {"type": "target", "indo": "Siswa / Mahasiswa", "ctl": "💡 CTL: Transisi dari siswa MA menjadi mahasiswa.", "ar_ex": "الطُّلَّابُ يَسْتَعِدُّونَ لِلاِمْتِحَانِ.", "id_ex": "Para siswa bersiap untuk ujian.", "img_url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400"},
     "الجَامِعَةُ": {"type": "target", "indo": "Universitas / Perguruan Tinggi", "ctl": "💡 CTL: Perguruan tinggi tujuan (PTN/PTKIN).", "ar_ex": "يَدْرُسُ فِي الجَامِعَةِ الحُكُومِيَّةِ.", "id_ex": "Berkuliah di perguruan tinggi negeri.", "img_url": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=400"},
@@ -160,7 +160,7 @@ words_db = {
     "اِسْتَعَدَّ - يَسْتَعِدُّ": {"type": "target", "indo": "Bersiap-siap", "ctl": "💡 CTL: Persiapan berkas & mental kelas 12.", "ar_ex": "يَسْتَعِدُّ لِلاِمْتِحَانِ.", "id_ex": "Bersiap-siap menghadapi ujian.", "img_url": "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400"},
     "أَفَادَ - يُفِيدُ": {"type": "target", "indo": "Memberi Manfaat", "ctl": "💡 CTL: Pengabdian ilmu untuk kemaslahatan.", "ar_ex": "العِلْمُ يُفِيدُ النَّاسَ.", "id_ex": "Ilmu memberikan manfaat bagi manusia.", "img_url": "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=400"},
 
-    # --- KATA PENDUKUNG DI LUAR 17 MUFRODAT (DILENGKAPI FOTO + CONTOH KALIMAT ARAB & INDONESIA) ---
+    # --- KATA PENDUKUNG LAINNYA ---
     "بَعْدَ": {"type": "regular", "indo": "Setelah", "gram": "Zaraf Zaman (Keterangan Waktu)", "ar_ex": "نَلْتَقِي بَعْدَ الصَّلَاةِ.", "id_ex": "Kita bertemu setelah shalat.", "img_url": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=400"},
     "التَّخَرُّجِ": {"type": "regular", "indo": "Kelulusan / Wisuda", "gram": "Isim Masdar", "ar_ex": "اِحْتَفَلَ الطُّلَّابُ بِالتَّخَرُّجِ.", "id_ex": "Para siswa merayakan kelulusan.", "img_url": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400"},
     "مِنَ": {"type": "regular", "indo": "Dari", "gram": "Harf Jar", "ar_ex": "خَرَجَ الطَّالِبُ مِنَ الفَصْلِ.", "id_ex": "Siswa itu keluar dari kelas.", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
@@ -244,19 +244,46 @@ def w(arabic_word, db_key=None):
     id_ex = info.get("id_ex", "Ini adalah kata di dalam teks.")
 
     if info["type"] == "target":
-        # Pop-Up Lengkap 17 Mufrodat Utama (Garis Biru Putus-putus + Gambar + Contoh Kalimat + CTL)
+        # Pop-Up Lengkap 17 Mufrodat Utama
         return f'''<span class="vocab-target">{arabic_word}<span class="tooltip-box"><img src="{img_url}" class="popup-img"><b style="font-size:17px; color:#38bdf8;">{key}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span><br><div class="example-box"><b>📌 Contoh Kalimat:</b><br><span style="font-family:'Amiri'; font-size:16px;">{ar_ex}</span><br><i style="color:#cbd5e1; font-size:11px;">"{id_ex}"</i></div><div style="font-size:11px; margin-top:5px; color:#94a3b8;">{info['ctl']}</div></span></span>'''
     else:
-        # Pop-Up Kata Pendukung (Garis Halus Abu-abu + Gambar + Contoh Kalimat + Tata Bahasa)
+        # Pop-Up Kata Pendukung
         gram_info = f'<br><small style="color:#94a3b8;">({info.get("gram", "")})</small>' if "gram" in info else ""
         return f'''<span class="vocab-regular">{arabic_word}<span class="tooltip-box"><img src="{img_url}" class="popup-img"><b style="font-size:16px; color:#38bdf8;">{arabic_word}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span>{gram_info}<br><div class="example-box"><b>📌 Contoh Kalimat:</b><br><span style="font-family:'Amiri'; font-size:15px;">{ar_ex}</span><br><i style="color:#cbd5e1; font-size:11px;">"{id_ex}"</i></div></span></span>'''
 
 # 4. Header Aplikasi
 st.markdown('<h1 class="main-title">🎓 Smart Qira\'ah Reader</h1>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">Media Pembelajaran Maharah Qira\'ah Kelas 12 MA — Tema: Ad-Dirasah fil Jamiah</p>', unsafe_allow_html=True)
-st.caption("👉 **Petunjuk Guru:** *Seluruh kata tanpa terkecuali* di teks ini dapat diklik/disorot! Setiap kata kini memuat **Foto Asli Unsplash**, **Terjemahan**, **Contoh Kalimat Berharakat**, serta **Gramatikal/CTL**-nya.")
 
-# 5. Sidebar Bank Mufrodat Target
+# 5. SAKELAR MODE FOKUS BACA (TOGGLE)
+focus_col1, focus_col2 = st.columns([1, 2])
+with focus_col1:
+    focus_mode = st.toggle("📖 Mode Fokus Baca (Teks Bersih)", value=False, help="Aktifkan ini saat siswa membaca di depan agar pop-up disembunyikan.")
+
+# Jika Mode Fokus Aktif, Injeksi CSS untuk Sembunyikan Pop-up & Efek Sorot
+if focus_mode:
+    st.markdown("""
+    <style>
+        .tooltip-box {
+            display: none !important;
+        }
+        .vocab-target, .vocab-regular {
+            border-bottom: none !important;
+            cursor: default !important;
+            color: #0f172a !important;
+            font-weight: normal !important;
+            background-color: transparent !important;
+        }
+        .vocab-target:hover, .vocab-regular:hover {
+            background-color: transparent !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    st.info("💡 **Mode Fokus Baca Aktif:** Teks dalam kondisi bersih tanpa pop-up/garis bawah untuk kelancaran siswa membaca di depan proyektor.")
+else:
+    st.caption("👉 **Petunjuk Guru:** Arahkan/Klik kata mana saja untuk melihat Gambar Visual, Arti, Contoh Kalimat, & CTL.")
+
+# 6. Sidebar Bank Mufrodat Target
 target_keys = [k for k, v in words_db.items() if v.get("type") == "target"]
 st.sidebar.header("📌 Bank 17 Kosa Kata Wajib")
 selected_word = st.sidebar.selectbox("Bedah Mufrodat Utama via Sidebar:", target_keys)
@@ -269,7 +296,7 @@ if selected_word:
     st.sidebar.markdown(f"**📌 Contoh Kalimat:**\n- {info['ar_ex']}\n  *( “{info['id_ex']}” )*")
     st.sidebar.info(info['ctl'])
 
-# 6. Area Utama Teks Bacaan (100% Seluruh Kata Ber-Pop-Up + Gambar + Contoh Kalimat)
+# 7. Area Utama Teks Bacaan
 col1, col2 = st.columns([2.2, 1])
 
 with col1:
@@ -294,7 +321,7 @@ with col1:
     p3_html = f"""
     {w("فِي")} {w("الجَامِعَةِ", "الجَامِعَةُ")}، {w("يَحْضُرُ")} {w("الطُّلَّابُ", "الطُّلَّابُ")} {w("الدُّرُوسَ")} {w("فِي")} {w("الفَصْلِ")} {w("مَعَ")} {w("الأُسْتَاذِ", "الأُسْتَاذُ")}. {w("وَيَذْهَبُونَ")} {w("إِلَى")} {w("المَكْتَبَةِ", "المَكْتَبَةُ")} {w("لِلْقِرَاءَةِ")} {w("وَالبَحْثِ")} {w("عَنِ")} {w("المَعْلُومَاتِ")}. {w("كَمَا")} {w("يَتَعَلَّمُونَ")} {w("مِنْ")} {w("خِلَالِ")} {w("المُنَاقَشَةِ")} {w("مَعَ")} {w("الأَسَاتِذَةِ", "الأُسْتَاذُ")} {w("وَالأَصْدِقَاءِ")}. {w("وَيَسْتَخْدِمُونَ")} {w("طُرُقًا")} {w("حَدِيثَةً")} {w("فِي")} {w("التَّعَلُّمِ")} {w("لِكَيْ")} {w("يَكُونُوا")} {w("مُسْتَعِدِّينَ", "اِسْتَعَدَّ - يَسْتَعِدُّ")} {w("لِلْعَمَلِ")} {w("فِي")} {w("المُسْتَقْبَلِ", "المُسْتَقْبَلُ")}.
     """
-    st.markdown(f'<div class="arabic-text">{p1_html if False else p3_html}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="arabic-text">{p3_html}</div>', unsafe_allow_html=True)
 
 with col2:
     st.subheader("💡 Diskusi Kontekstual (CTL)")
