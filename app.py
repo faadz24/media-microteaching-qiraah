@@ -127,7 +127,7 @@ vocab_db = {
         "ctl": "💡 CTL: Jenjang pendidikan awal (MA) sebelum ke Perguruan Tinggi.",
         "ar_ex": "يَتَعَلَّمُ الطُّلَّابُ فِي المَدْرَسَةِ الإِسْلَامِيَّةِ.",
         "id_ex": "Para siswa belajar di madrasah aliyah.",
-        "img_url": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400"
+        "img_url": "https://geotimes.id/wp-content/uploads/2017/08/Sekolah.jpg"
     },
     "الطُّلَّابُ": {
         "indo": "Siswa / Mahasiswa",
