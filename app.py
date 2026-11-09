@@ -1,13 +1,13 @@
 import streamlit as st
 
-# 1. Konfigurasi Halaman (Harus berada di paling atas setelah import)
+# 1. Konfigurasi Halaman
 st.set_page_config(
     page_title="Smart Qira'ah Reader: Ad-Dirasah fil Jamiah",
     page_icon="🎓",
     layout="wide"
 )
 
-# 2. Injeksi CSS untuk Teks Arab RTL & Tampilan Menarik
+# 2. Injeksi CSS untuk Teks Arab, Pop-up Tooltip, & Style
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
@@ -38,48 +38,104 @@ st.markdown("""
     }
     .arabic-text {
         font-family: 'Amiri', serif;
-        font-size: 26px;
-        line-height: 2.3;
+        font-size: 28px;
+        line-height: 2.4;
         direction: rtl;
         text-align: right;
         background-color: #ffffff;
-        padding: 22px;
+        padding: 25px;
         border-radius: 12px;
         border-right: 6px solid #1e3a8a;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         margin-bottom: 15px;
     }
+    
+    /* STYLE POP-UP / TOOLTIP DALAM TEKS */
+    .vocab {
+        color: #2563eb;
+        font-weight: bold;
+        border-bottom: 2px dashed #2563eb;
+        cursor: pointer;
+        position: relative;
+        display: inline-block;
+        padding: 0 4px;
+    }
+    .vocab:hover {
+        background-color: #fef08a;
+        border-radius: 4px;
+    }
+    .vocab .tooltip-box {
+        visibility: hidden;
+        width: 250px;
+        background-color: #1e3a8a;
+        color: #ffffff;
+        text-align: right;
+        border-radius: 8px;
+        padding: 12px;
+        position: absolute;
+        z-index: 100;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        font-size: 16px;
+        line-height: 1.5;
+        font-family: sans-serif;
+        box-shadow: 0px 8px 16px rgba(0,0,0,0.3);
+        direction: rtl;
+    }
+    .vocab .tooltip-box::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -6px;
+        border-width: 6px;
+        border-style: solid;
+        border-color: #1e3a8a transparent transparent transparent;
+    }
+    .vocab:hover .tooltip-box {
+        visibility: visible;
+        opacity: 1;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Database 17 Mufrodat Lengkap
+# 3. Database 17 Mufrodat
 vocab_db = {
-    "المَدْرَسَةُ": {"indo": "Sekolah / Madrasah", "ctl": "💡 Konteks CTL: Jenjang pendidikan awal (MA) sebelum melangkah ke jenjang Perguruan Tinggi."},
-    "الطُّلَّابُ": {"indo": "Siswa / Mahasiswa", "ctl": "💡 Konteks CTL: Para pelajar yang bersiap mentransisikan peran diri menjadi mahasiswa mandiri."},
-    "الجَامِعَةُ": {"indo": "Universitas / Perguruan Tinggi", "ctl": "💡 Konteks CTL: Lembaga tinggi tempat siswa MA melanjutkan studi (PTN, PTKIN, luar negeri)."},
-    "المُسْتَقْبَلُ": {"indo": "Masa Depan", "ctl": "💡 Konteks CTL: Cita-cita karier dan tujuan hidup yang dirancang siswa kelas 12."},
-    "التَّسْجِيلُ": {"indo": "Pendaftaran / Registrasi", "ctl": "💡 Konteks CTL: Proses administratif melengkapi berkas jalur pendaftaran (SNBP, SNBT, SPAN-PTKIN)."},
-    "القِسْمُ": {"indo": "Jurusan / Program Studi", "ctl": "💡 Konteks CTL: Spesialisasi ilmu yang dipilih siswa sesuai bakat dan minat akademik."},
-    "الكُلِّيَّةُ": {"indo": "Fakultas", "ctl": "💡 Konteks CTL: Unit gabungan beberapa jurusan sejenis (misal: Fakultas Tarbiyah, Kedokteran, Teknik)."},
-    "المَكْتَبَةُ": {"indo": "Perpustakaan", "ctl": "💡 Konteks CTL: Pusat referensi bacaan, jurnal akademik, dan tempat mahasiswa meriset tugas."},
-    "الأُسْتَاذُ": {"indo": "Dosen / Pengajar", "ctl": "💡 Konteks CTL: Tenaga pengajar dan pembimbing riset ilmiah di lingkungan perguruan tinggi."},
-    "المُجْتَمَعُ": {"indo": "Masyarakat / Komunitas", "ctl": "💡 Konteks CTL: Muara pengabdian ilmu yang didapatkan mahasiswa setelah menyelesaikan kuliah."},
-    "وَاصَلَ - يُوَاصِلُ": {"indo": "Melanjutkan", "ctl": "💡 Konteks CTL: Semangat siswa MA untuk meneruskan pendidikan ke tingkatan yang lebih tinggi."},
-    "اِخْتَارَ - يَخْتَارُ": {"indo": "Memilih", "ctl": "💡 Konteks CTL: Proses kemandirian mengambil keputusan menentukan jurusan kampus."},
-    "تَنَاسَبَ - يَتَنَاسَبُ": {"indo": "Sesuai / Cocok", "ctl": "💡 Konteks CTL: Menyesuaikan jurusan yang dipilih dengan potensi dan minat diri."},
-    "اِلْتَحَقَ - يَلْتَحِقُ": {"indo": "Bergabung / Masuk PT", "ctl": "💡 Konteks CTL: Resmi terdaftar dan menjadi mahasiswa di fakultas pilihan."},
-    "اِعْتَمَدَ - يَعْتَمِدُ": {"indo": "Berdikari / Mandiri", "ctl": "💡 Konteks CTL: Kemandirian pola belajar mahasiswa di kampus tanpa bergantung penuh pada guru."},
-    "اِسْتَعَدَّ - يَسْتَعِدُّ": {"indo": "Bersiap-siap", "ctl": "💡 Konteks CTL: Persiapan berkas, nilai, dan mental siswa kelas 12 menjelang kelulusan."},
-    "أَفَادَ - يُفِيدُ": {"indo": "Memberi Manfaat", "ctl": "💡 Konteks CTL: Tujuan utama menuntut ilmu tinggi agar membawa dampak positif bagi masyarakat."}
+    "المَدْرَسَةُ": {"indo": "Sekolah / Madrasah", "ctl": "💡 Konteks CTL: Jenjang pendidikan awal (MA) sebelum ke Perguruan Tinggi."},
+    "الطُّلَّابُ": {"indo": "Siswa / Mahasiswa", "ctl": "💡 Konteks CTL: Transisi peran dari siswa MA menjadi mahasiswa mandiri."},
+    "الجَامِعَةُ": {"indo": "Universitas / Perguruan Tinggi", "ctl": "💡 Konteks CTL: Lembaga tinggi tujuan lulusan MA (PTN, PTKIN)."},
+    "المُسْتَقْبَلُ": {"indo": "Masa Depan", "ctl": "💡 Konteks CTL: Cita-cita karier yang dirancang siswa kelas 12."},
+    "التَّسْجِيلُ": {"indo": "Pendaftaran / Registrasi", "ctl": "💡 Konteks CTL: Proses berkas pendaftaran (SNBP, SNBT, SPAN-PTKIN)."},
+    "القِسْمُ": {"indo": "Jurusan / Program Studi", "ctl": "💡 Konteks CTL: Spesialisasi ilmu sesuai bakat dan minat."},
+    "الكُلِّيَّةُ": {"indo": "Fakultas", "ctl": "💡 Konteks CTL: Wadah jurusan sejenis (Tarbiyah, Kedokteran, Teknik)."},
+    "المَكْتَبَةُ": {"indo": "Perpustakaan", "ctl": "💡 Konteks CTL: Pusat referensi bacaan dan riset tugas mahasiswa."},
+    "الأُسْتَاذُ": {"indo": "Dosen / Pengajar", "ctl": "💡 Konteks CTL: Tenaga pengajar dan pembimbing riset kampus."},
+    "المُجْتَمَعُ": {"indo": "Masyarakat / Komunitas", "ctl": "💡 Konteks CTL: Muara pengabdian ilmu lulusan kampus."},
+    "وَاصَلَ - يُوَاصِلُ": {"indo": "Melanjutkan", "ctl": "💡 Konteks CTL: Semangat siswa MA meneruskan studi tinggi."},
+    "اِخْتَارَ - يَخْتَارُ": {"indo": "Memilih", "ctl": "💡 Konteks CTL: Kemandirian mengambil keputusan jurusan."},
+    "تَنَاسَبَ - يَتَنَاسَبُ": {"indo": "Sesuai / Cocok", "ctl": "💡 Konteks CTL: Menyelaraskan minat diri dengan prodi."},
+    "اِلْتَحَقَ - يَلْتَحِقُ": {"indo": "Bergabung / Masuk PT", "ctl": "💡 Konteks CTL: Resmi terdaftar menjadi mahasiswa baru."},
+    "اِعْتَمَدَ - يَعْتَمِدُ": {"indo": "Berdikari / Mandiri", "ctl": "💡 Konteks CTL: Kemandirian pola belajar di Perguruan Tinggi."},
+    "اِسْتَعَدَّ - يَسْتَعِدُّ": {"indo": "Bersiap-siap", "ctl": "💡 Konteks CTL: Persiapan berkas & mental kelas 12."},
+    "أَفَادَ - يُفِيدُ": {"indo": "Memberi Manfaat", "ctl": "💡 Konteks CTL: Pengabdian ilmu untuk kemaslahatan masyarakat."}
 }
+
+# Fungsi Helper untuk Membuat Kata Ber-Tooltip
+def v(arabic_word, db_key):
+    info = vocab_db[db_key]
+    return f'''<span class="vocab">{arabic_word}<span class="tooltip-box"><b>{db_key}</b><br><span style="color:#fde047;">{info['indo']}</span><br><small>{info['ctl']}</small></span></span>'''
 
 # 4. Header Aplikasi
 st.markdown('<h1 class="main-title">🎓 Smart Qira\'ah Reader</h1>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">Media Pembelajaran Maharah Qira\'ah Kelas 12 MA — Tema: Ad-Dirasah fil Jamiah</p>', unsafe_allow_html=True)
+st.caption("👉 **Petunjuk:** Gerakkan kursor atau klik pada kosa kata yang bergaris bawah di dalam teks untuk memunculkan pop-up penjelasan!")
 
-# 5. Sidebar Navigasi Mufrodat
+# 5. Sidebar Bank Mufrodat
 st.sidebar.header("📌 Bank 17 Kosa Kata Wajib")
-selected_word = st.sidebar.selectbox("Pilih kata untuk dibedah maknanya:", list(vocab_db.keys()))
+selected_word = st.sidebar.selectbox("Pilih kata untuk dibedah via sidebar:", list(vocab_db.keys()))
 
 if selected_word:
     info = vocab_db[selected_word]
@@ -87,32 +143,32 @@ if selected_word:
     st.sidebar.markdown(f"**Arti:** {info['indo']}")
     st.sidebar.info(info['ctl'])
 
-# 6. Layout Utama (2 Kolom)
-col1, col2 = st.columns([2, 1])
+# 6. Area Utama Teks Bacaan
+col1, col2 = st.columns([2.2, 1])
 
 with col1:
     st.subheader("📖 Teks Bacaan (المَادَّةُ)")
     
     # Paragraf 1
     st.markdown('<div class="arabic-title">الفقرة الأولى: الدِّرَاسَةُ فِي الجَامِعَةِ</div>', unsafe_allow_html=True)
-    p1_text = """
-    بَعْدَ التَّخَرُّجِ مِنَ المَدْرَسَةِ الإِسْلَامِيَّةِ، يُرِيدُ كَثِيرٌ مِنَ الطُّلَّابِ أَنْ يَدْرُسُوا فِي الجَامِعَةِ. يَذْهَبُ الطُّلَّابُ إِلَى الجَامِعَةِ لِلتَّسْجِيلِ وَتَقْدِيمِ الأَوْرَاقِ. فِي الجَامِعَةِ، يَتَعَلَّمُ الطُّلَّابُ أَشْيَاءَ جَدِيدَةً وَيَسْتَعِدُّونَ لِلْمُسْتَقْبَلِ. كَمَا يَتَعَلَّمُونَ أَنْ يَعْتَمِدُوا عَلَى أَنْفُسِهِمْ.
+    p1_html = f"""
+    بَعْدَ التَّخَرُّجِ مِنَ {v("المَدْرَسَةِ", "المَدْرَسَةُ")} الإِسْلَامِيَّةِ، يُرِيدُ كَثِيرٌ مِنَ {v("الطُّلَّابِ", "الطُّلَّابُ")} أَنْ {v("يُوَاصِلُوا", "وَاصَلَ - يُوَاصِلُ")} دِرَاسَتَهُمْ وَيَدْرُسُوا فِي {v("الجَامِعَةِ", "الجَامِعَةُ")}. يَذْهَبُ الطُّلَّابُ إِلَى الجَامِعَةِ {v("لِلتَّسْجِيلِ", "التَّسْجِيلُ")} وَتَقْدِيمِ الأَوْرَاقِ. فِي الجَامِعَةِ، يَتَعَلَّمُ الطُّلَّابُ أَشْيَاءَ جَدِيدَةً وَ{v("يَسْتَعِدُّونَ", "اِسْتَعَدَّ - يَسْتَعِدُّ")} {v("لِلْمُسْتَقْبَلِ", "المُسْتَقْبَلُ")}. كَمَا يَتَعَلَّمُونَ أَنْ {v("يَعْتَمِدُوا", "اِعْتَمَدَ - يَعْتَمِدُ")} عَلَى أَنْفُسِهِمْ.
     """
-    st.markdown(f'<div class="arabic-text">{p1_text}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="arabic-text">{p1_html}</div>', unsafe_allow_html=True)
 
     # Paragraf 2
     st.markdown('<div class="arabic-title">الفقرة الثانية: اخْتِيَارُ القِسْمِ وَالكُلِّيَّةِ</div>', unsafe_allow_html=True)
-    p2_text = """
-    يَخْتَارُ كُلُّ طَالِبٍ القِسْمَ الَّذِي يُحِبُّهُ وَيُنَاسِبُهُ. مَنْ يُحِبُّ الطِّبَّ يَدْرُسُ فِي كُلِّيَّةِ الطِّبِّ، وَمَنْ يُحِبُّ الهَنْدَسَةَ يَدْرُسُ فِي كُلِّيَّةِ الهَنْدَسَةِ. وَهُنَاكَ أَيْضًا كُلِّيَّةُ التَّرْبِيَةِ وَكُلِّيَّةُ الشَّرِيعَةِ. يَخْتَارُ الطُّلَّابُ هَذِهِ الكُلِّيَّاتِ لِأَنَّهُمْ يُرِيدُونَ أَنْ يَتَعَلَّمُوا وَيُفِيدُوا المُجْتَمَعَ.
+    p2_html = f"""
+    {v("يَخْتَارُ", "اِخْتَارَ - يَخْتَارُ")} كُلُّ طَالِبٍ {v("القِسْمَ", "القِسْمُ")} الَّذِي يُحِبُّهُ وَ{v("يُنَاسِبُهُ", "تَنَاسَبَ - يَتَنَاسَبُ")}. مَنْ يُحِبُّ الطِّبَّ {v("يَلْتَحِقُ", "اِلْتَحَقَ - يَلْتَحِقُ")} وَيَدْرُسُ فِي {v("كُلِّيَّةِ", "الكُلِّيَّةُ")} الطِّبِّ، وَمَنْ يُحِبُّ الهَنْدَسَةَ يَدْرُسُ فِي كُلِّيَّةِ الهَنْدَسَةِ. وَهُنَاكَ أَيْضًا كُلِّيَّةُ التَّرْبِيَةِ وَكُلِّيَّةُ الشَّرِيعَةِ. يَخْتَارُ الطُّلَّابُ هَذِهِ الكُلِّيَّاتِ لِأَنَّهُمْ يُرِيدُونَ أَنْ يَتَعَلَّمُوا وَ{v("يُفِيدُوا", "أَفَادَ - يُفِيدُ")} {v("المُجْتَمَعَ", "المُجْتَمَعُ")}.
     """
-    st.markdown(f'<div class="arabic-text">{p2_text}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="arabic-text">{p2_html}</div>', unsafe_allow_html=True)
 
     # Paragraf 3
     st.markdown('<div class="arabic-title">الفقرة الثالثة: الحَيَاةُ الجَامِعِيَّةُ وَالدِّرَاسَةُ</div>', unsafe_allow_html=True)
-    p3_text = """
-    فِي الجَامِعَةِ، يَحْضُرُ الطُّلَّابُ الدُّرُوسَ فِي الفَصْلِ مَعَ الأُسْتَاذِ. وَيَذْهَبُونَ إِلَى المَكْتَبَةِ لِلْقِرَاءَةِ وَالبَحْثِ عَنِ المَعْلُومَاتِ. كَمَا يَتَعَلَّمُونَ مِنْ خِلَالِ المُنَاقَشَةِ مَعَ الأَسَاتِذَةِ وَالأَصْدِقَاءِ. وَيَسْتَخْدِمُونَ طُرُقًا حَدِيثَةً فِي التَّعَلُّمِ لِكَيْ يَكُونُوا مُسْتَعِدِّينَ لِلْعَمَلِ فِي المُسْتَقْبَلِ.
+    p3_html = f"""
+    فِي الجَامِعَةِ، يَحْضُرُ الطُّلَّابُ الدُّرُوسَ فِي الفَصْلِ مَعَ {v("الأُسْتَاذِ", "الأُسْتَاذُ")}. وَيَذْهَبُونَ إِلَى {v("المَكْتَبَةِ", "المَكْتَبَةُ")} لِلْقِرَاءَةِ وَالبَحْثِ عَنِ المَعْلُومَاتِ. كَمَا يَتَعَلَّمُونَ مِنْ خِلَالِ المُنَاقَشَةِ مَعَ الأَسَاتِذَةِ وَالأَصْدِقَاءِ. وَيَسْتَخْدِمُونَ طُرُقًا حَدِيثَةً فِي التَّعَلُّمِ لِكَيْ يَكُونُوا مُسْتَعِدِّينَ لِلْعَمَلِ فِي المُسْتَقْبَلِ.
     """
-    st.markdown(f'<div class="arabic-text">{p3_text}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="arabic-text">{p3_html}</div>', unsafe_allow_html=True)
 
 with col2:
     st.subheader("💡 Diskusi Kontekstual (CTL)")
