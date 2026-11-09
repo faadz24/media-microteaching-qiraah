@@ -1,13 +1,13 @@
 import streamlit as st
 
-# 1. Konfigurasi Halaman
+# 1. Konfigurasi Halaman (Harus di baris pertama setelah import)
 st.set_page_config(
     page_title="Smart Qira'ah Reader: Ad-Dirasah fil Jamiah",
     page_icon="🎓",
     layout="wide"
 )
 
-# 2. Injeksi CSS untuk Teks Arab, Pop-up Tooltip, & Styling
+# 2. Injeksi CSS untuk Teks Arab, Pop-up Tooltip + Gambar untuk SEMUA KATA
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
@@ -39,7 +39,7 @@ st.markdown("""
     .arabic-text {
         font-family: 'Amiri', serif;
         font-size: 28px;
-        line-height: 2.5;
+        line-height: 2.6;
         direction: rtl;
         text-align: right;
         background-color: #ffffff;
@@ -50,7 +50,7 @@ st.markdown("""
         margin-bottom: 15px;
     }
     
-    /* INTERAKSI KATA */
+    /* GAYA KATA TARGET (17 MUFRODAT UTAMA) */
     .vocab-target {
         color: #2563eb;
         font-weight: bold;
@@ -65,13 +65,14 @@ st.markdown("""
         border-radius: 4px;
     }
     
+    /* GAYA KATA PENDUKUNG (SEMUA KATA LAIN DALAM TEKS) */
     .vocab-regular {
         color: #0f172a;
         cursor: pointer;
         position: relative;
         display: inline-block;
-        padding: 0 2px;
-        border-bottom: 1px dotted #cbd5e1;
+        padding: 0 3px;
+        border-bottom: 1px dotted #94a3b8;
     }
     .vocab-regular:hover {
         background-color: #e2e8f0;
@@ -79,7 +80,7 @@ st.markdown("""
         color: #1e3a8a;
     }
 
-    /* TOOLTIP / POP-UP */
+    /* TOOLTIP / POP-UP FLOATING BOX */
     .tooltip-box {
         visibility: hidden;
         width: 300px;
@@ -136,9 +137,12 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Database Complete (17 Target Mufrodat + Kata-Kata Lain dalam Teks)
+# Gambar default untuk kata umum
+DEFAULT_IMG = "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400"
+
+# 3. Database Seluruh Kata dalam 3 Paragraf Bacaan (Setiap kata ber-gambar!)
 words_db = {
-    # --- 17 TARGET MUFRODAT UTAMA (LENGKAP PHOTO + CTL) ---
+    # --- 17 TARGET MUFRODAT UTAMA (LENGKAP FOTO + CONTOH KALIMAT + CTL) ---
     "المَدْرَسَةُ": {"type": "target", "indo": "Sekolah / Madrasah", "ctl": "💡 CTL: Jenjang MA sebelum ke Perguruan Tinggi.", "ar_ex": "يَتَعَلَّمُ الطُّلَّابُ فِي المَدْرَسَةِ الإِسْلَامِيَّةِ.", "id_ex": "Para siswa belajar di madrasah aliyah.", "img_url": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400"},
     "الطُّلَّابُ": {"type": "target", "indo": "Siswa / Mahasiswa", "ctl": "💡 CTL: Transisi dari siswa MA menjadi mahasiswa.", "ar_ex": "الطُّلَّابُ يَسْتَعِدُّونَ لِلاِمْتِحَانِ.", "id_ex": "Para siswa bersiap untuk ujian.", "img_url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400"},
     "الجَامِعَةُ": {"type": "target", "indo": "Universitas / Perguruan Tinggi", "ctl": "💡 CTL: Perguruan tinggi tujuan (PTN/PTKIN).", "ar_ex": "يَدْرُسُ فِي الجَامِعَةِ الحُكُومِيَّةِ.", "id_ex": "Berkuliah di perguruan tinggi negeri.", "img_url": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=400"},
@@ -157,86 +161,97 @@ words_db = {
     "اِسْتَعَدَّ - يَسْتَعِدُّ": {"type": "target", "indo": "Bersiap-siap", "ctl": "💡 CTL: Persiapan berkas & mental kelas 12.", "ar_ex": "يَسْتَعِدُّ لِلاِمْتِحَانِ.", "id_ex": "Bersiap-siap menghadapi ujian.", "img_url": "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400"},
     "أَفَادَ - يُفِيدُ": {"type": "target", "indo": "Memberi Manfaat", "ctl": "💡 CTL: Pengabdian ilmu untuk kemaslahatan.", "ar_ex": "العِلْمُ يُفِيدُ النَّاسَ.", "id_ex": "Ilmu memberikan manfaat bagi manusia.", "img_url": "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=400"},
 
-    # --- KATA-KATA PENDUKUNG DALAM TEKS (POPU-UP SIMPEL) ---
-    "بَعْدَ": {"type": "regular", "indo": "Setelah (Zaraf Zaman)", "gram": "Harf / Kata Keterangan Waktu"},
-    "التَّخَرُّجِ": {"type": "regular", "indo": "Kelulusan / Wisuda", "gram": "Isim Masdar (Dari verb: tajarraja)"},
-    "مِنَ": {"type": "regular", "indo": "Dari", "gram": "Harf Jar"},
-    "الإِسْلَامِيَّةِ": {"type": "regular", "indo": "Islam / Keislaman", "gram": "Na'at (Kata Sifat)"},
-    "يُرِيدُ": {"type": "regular", "indo": "Ingin / Menghendaki", "gram": "Fi'il Mudhari' (Verba Present)"},
-    "كَثِيرٌ": {"type": "regular", "indo": "Banyak", "gram": "Isim Sifat"},
-    "أَنْ": {"type": "regular", "indo": "Bahwa / Untuk", "gram": "Harf Nashab"},
-    "دِرَاسَتَهُمْ": {"type": "regular", "indo": "Studi / Pembelajaran Mereka", "gram": "Isim + Dhamir (Kata Ganti)"},
-    "وَيَدْرُسُوا": {"type": "regular", "indo": "Dan mereka belajar / berkuliah", "gram": "Fi'il Mudhari' Manshub"},
-    "فِي": {"type": "regular", "indo": "Di / Di dalam", "gram": "Harf Jar"},
-    "يَذْهَبُ": {"type": "regular", "indo": "Pergi / Berangkat", "gram": "Fi'il Mudhari'"},
-    "إِلَى": {"type": "regular", "indo": "Ke / Kepada", "gram": "Harf Jar"},
-    "وَتَقْدِيمِ": {"type": "regular", "indo": "Dan menyerahkan / mengajukan", "gram": "Isim Masdar + Harf Athaf"},
-    "الأَوْرَاقِ": {"type": "regular", "indo": "Berkas-berkas / Dokumen", "gram": "Isim Jamak Taksir"},
-    "يَتَعَلَّمُ": {"type": "regular", "indo": "Belajar / Mempelajari", "gram": "Fi'il Mudhari'"},
-    "أَشْيَاءَ": {"type": "regular", "indo": "Hal-hal / Sesuatu", "gram": "Isim Jamak"},
-    "جَدِيدَةً": {"type": "regular", "indo": "Baru", "gram": "Na'at / Kata Sifat"},
-    "لِلْمُسْتَقْبَلِ": {"type": "regular", "indo": "Untuk masa depan", "gram": "Harf Jar + Isim"},
-    "كَمَا": {"type": "regular", "indo": "Sebagaimana / Juga", "gram": "Harf Sambung"},
-    "يَتَعَلَّمُونَ": {"type": "regular", "indo": "Mereka belajar", "gram": "Fi'il Mudhari' Jamak"},
-    "عَلَى": {"type": "regular", "indo": "Atas / Kepada", "gram": "Harf Jar"},
-    "أَنْفُسِهِمْ": {"type": "regular", "indo": "Diri mereka sendiri", "gram": "Isim + Dhamir (Kemandirian)"},
-    "كُلُّ": {"type": "regular", "indo": "Setiap / Masing-masing", "gram": "Isim Mudhaf"},
-    "طَالِبٍ": {"type": "regular", "indo": "Siswa / Pelajar", "gram": "Isim Mufrad (Tunggal)"},
-    "الَّذِي": {"type": "regular", "indo": "Yang (Isim Maushul)", "gram": "Kata Hubung Yang"},
-    "يُحِبُّهُ": {"type": "regular", "indo": "Ia menyukainya", "gram": "Fi'il Mudhari' + Dhamir"},
-    "مَنْ": {"type": "regular", "indo": "Barangsiapa / Siapa yang", "gram": "Isim Syarat / Maushul"},
-    "الطِّبَّ": {"type": "regular", "indo": "Kedokteran / Ilmu Medis", "gram": "Isim"},
-    "يَدْرُسُ": {"type": "regular", "indo": "Belajar / Berkuliah", "gram": "Fi'il Mudhari'"},
-    "الطِّبِّ": {"type": "regular", "indo": "Kedokteran", "gram": "Isim Mudhaf Ilaih"},
-    "الهَنْدَسَةَ": {"type": "regular", "indo": "Teknik / Rekayasa", "gram": "Isim Jurusan"},
-    "وَهُنَاكَ": {"type": "regular", "indo": "Dan di sana / Terdapat juga", "gram": "Isim Isyarah"},
-    "أَيْضًا": {"type": "regular", "indo": "Juga / Pula", "gram": "Maf'ul Mutlaq / Maf'ul Fih"},
-    "التَّرْبِيَةِ": {"type": "regular", "indo": "Pendidikan / Tarbiyah", "gram": "Isim Fakultas"},
-    "الشَّرِيعَةِ": {"type": "regular", "indo": "Syariah / Hukum Islam", "gram": "Isim Fakultas"},
-    "هَذِهِ": {"type": "regular", "indo": "Ini (Kata Tunjuk)", "gram": "Isim Isyarah Muannats"},
-    "الكُلِّيَّاتِ": {"type": "regular", "indo": "Fakultas-fakultas", "gram": "Isim Jamak Muannats Salim"},
-    "لِأَنَّهُمْ": {"type": "regular", "indo": "Karena mereka", "gram": "Harf Sababiyah + Dhamir"},
-    "يُرِيدُونَ": {"type": "regular", "indo": "Mereka ingin / menghendaki", "gram": "Fi'il Mudhari' Jamak"},
-    "يَحْضُرُ": {"type": "regular", "indo": "Menghadiri / Mengikuti", "gram": "Fi'il Mudhari'"},
-    "الدُّرُوسَ": {"type": "regular", "indo": "Pelajaran-pelajaran / Kuliah", "gram": "Isim Jamak Taksir"},
-    "الفَصْلِ": {"type": "regular", "indo": "Ruang Kelas", "gram": "Isim Tempat"},
-    "مَعَ": {"type": "regular", "indo": "Bersama / Dengan", "gram": "Zaraf Makan"},
-    "وَيَذْهَبُونَ": {"type": "regular", "indo": "Dan mereka pergi", "gram": "Fi'il Mudhari' Jamak"},
-    "لِلْقِرَاءَةِ": {"type": "regular", "indo": "Untuk membaca", "gram": "Harf Jar + Isim Masdar"},
-    "وَالبَحْثِ": {"type": "regular", "indo": "Dan meriset / mencari", "gram": "Isim Masdar"},
-    "عَنِ": {"type": "regular", "indo": "Tentang / Dari", "gram": "Harf Jar"},
-    "المَعْلُومَاتِ": {"type": "regular", "indo": "Informasi / Data", "gram": "Isim Jamak Muannats Salim"},
-    "مِنْ": {"type": "regular", "indo": "Dari / Melalui", "gram": "Harf Jar"},
-    "خِلَالِ": {"type": "regular", "indo": "Melalui / Sela-sela", "gram": "Zaraf"},
-    "المُنَاقَشَةِ": {"type": "regular", "indo": "Diskusi / Tanya Jawab", "gram": "Isim Masdar"},
-    "الأَسَاتِذَةِ": {"type": "regular", "indo": "Para Dosen / Pengajar", "gram": "Isim Jamak dari Ustadz"},
-    "وَالأَصْدِقَاءِ": {"type": "regular", "indo": "Dan teman-teman", "gram": "Isim Jamak Taksir"},
-    "وَيَسْتَخْدِمُونَ": {"type": "regular", "indo": "Dan mereka menggunakan", "gram": "Fi'il Mudhari' Jamak"},
-    "طُرُقًا": {"type": "regular", "indo": "Metode-metode / Cara", "gram": "Isim Jamak Taksir"},
-    "حَدِيثَةً": {"type": "regular", "indo": "Modern / Terbaru", "gram": "Na'at / Kata Sifat"},
-    "لِكَيْ": {"type": "regular", "indo": "Supaya / Agar", "gram": "Harf Nashab"},
-    "يَكُونُوا": {"type": "regular", "indo": "Agar mereka menjadi", "gram": "Fi'il Mudhari' Naqis"},
-    "مُسْتَعِدِّينَ": {"type": "regular", "indo": "Siap / Siap sedia", "gram": "Khabar Kana (Jamak)"},
-    "لِلْعَمَلِ": {"type": "regular", "indo": "Untuk bekerja", "gram": "Harf Jar + Isim Masdar"}
+    # --- KATA PENDUKUNG LAINNYA (TETAP PUNYA POP-UP BER-GAMBAR) ---
+    "بَعْدَ": {"type": "regular", "indo": "Setelah (Zaraf Zaman)", "gram": "Kata Keterangan Waktu", "img_url": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=400"},
+    "التَّخَرُّجِ": {"type": "regular", "indo": "Kelulusan / Wisuda", "gram": "Isim Masdar", "img_url": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400"},
+    "مِنَ": {"type": "regular", "indo": "Dari", "gram": "Harf Jar", "img_url": DEFAULT_IMG},
+    "الثَّانَوِيَّةِ": {"type": "regular", "indo": "Tingkat Menengah / Aliyah", "gram": "Kata Sifat (Na'at)", "img_url": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400"},
+    "الإِسْلَامِيَّةِ": {"type": "regular", "indo": "Islam / Keislaman", "gram": "Kata Sifat (Na'at)", "img_url": DEFAULT_IMG},
+    "يُرِيدُ": {"type": "regular", "indo": "Ingin / Menghendaki", "gram": "Fi'il Mudhari'", "img_url": DEFAULT_IMG},
+    "كَثِيرٌ": {"type": "regular", "indo": "Banyak", "gram": "Isim Sifat", "img_url": DEFAULT_IMG},
+    "أَنْ": {"type": "regular", "indo": "Bahwa / Untuk", "gram": "Harf Nashab", "img_url": DEFAULT_IMG},
+    "يَدْرُسُوا": {"type": "regular", "indo": "Mereka berkuliah/belajar", "gram": "Fi'il Mudhari' Jamak", "img_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400"},
+    "فِي": {"type": "regular", "indo": "Di / Di dalam", "gram": "Harf Jar", "img_url": DEFAULT_IMG},
+    "يَذْهَبُ": {"type": "regular", "indo": "Pergi / Berangkat", "gram": "Fi'il Mudhari'", "img_url": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400"},
+    "إِلَى": {"type": "regular", "indo": "Ke / Kepada", "gram": "Harf Jar", "img_url": DEFAULT_IMG},
+    "وَتَقْدِيمِ": {"type": "regular", "indo": "Dan menyerahkan / mengajukan", "gram": "Harf Athaf + Masdar", "img_url": "https://images.unsplash.com/photo-1450133064473-71024230f91b?w=400"},
+    "الأَوْرَاقِ": {"type": "regular", "indo": "Berkas-berkas / Dokumen", "gram": "Isim Jamak Taksir", "img_url": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400"},
+    "يَتَعَلَّمُ": {"type": "regular", "indo": "Belajar / Mempelajari", "gram": "Fi'il Mudhari'", "img_url": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400"},
+    "أَشْيَاءَ": {"type": "regular", "indo": "Hal-hal / Sesuatu", "gram": "Isim Jamak", "img_url": DEFAULT_IMG},
+    "جَدِيدَةً": {"type": "regular", "indo": "Baru", "gram": "Na'at / Kata Sifat", "img_url": DEFAULT_IMG},
+    "كَمَا": {"type": "regular", "indo": "Sebagaimana / Juga", "gram": "Harf Sambung", "img_url": DEFAULT_IMG},
+    "يَتَعَلَّمُونَ": {"type": "regular", "indo": "Mereka belajar", "gram": "Fi'il Mudhari' Jamak", "img_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400"},
+    "عَلَى": {"type": "regular", "indo": "Atas / Kepada", "gram": "Harf Jar", "img_url": DEFAULT_IMG},
+    "أَنْفُسِهِمْ": {"type": "regular", "indo": "Diri mereka sendiri", "gram": "Isim + Dhamir (Kemandirian)", "img_url": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400"},
+    "كُلُّ": {"type": "regular", "indo": "Setiap / Masing-masing", "gram": "Isim Mudhaf", "img_url": DEFAULT_IMG},
+    "طَالِبٍ": {"type": "regular", "indo": "Siswa / Pelajar", "gram": "Isim Mufrad (Tunggal)", "img_url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400"},
+    "الَّذِي": {"type": "regular", "indo": "Yang (Kata Hubung)", "gram": "Isim Maushul", "img_url": DEFAULT_IMG},
+    "يُحِبُّهُ": {"type": "regular", "indo": "Ia menyukainya", "gram": "Fi'il Mudhari' + Dhamir", "img_url": DEFAULT_IMG},
+    "يُنَاسِبُهُ": {"type": "regular", "indo": "Sesuai / Cocok baginya", "gram": "Fi'il Mudhari' + Dhamir", "img_url": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400"},
+    "مَنْ": {"type": "regular", "indo": "Barangsiapa / Siapa yang", "gram": "Isim Syarat / Maushul", "img_url": DEFAULT_IMG},
+    "يُحِبُّ": {"type": "regular", "indo": "Menyukai / Menyukai bidang", "gram": "Fi'il Mudhari'", "img_url": DEFAULT_IMG},
+    "الطِّبَّ": {"type": "regular", "indo": "Kedokteran / Ilmu Medis", "gram": "Isim Jurusan", "img_url": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400"},
+    "يَدْرُسُ": {"type": "regular", "indo": "Belajar / Berkuliah", "gram": "Fi'il Mudhari'", "img_url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400"},
+    "الطِّبِّ": {"type": "regular", "indo": "Kedokteran", "gram": "Isim Mudhaf Ilaih", "img_url": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400"},
+    "الهَنْدَسَةَ": {"type": "regular", "indo": "Teknik / Rekayasa", "gram": "Isim Jurusan", "img_url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400"},
+    "الهَنْدَسَةِ": {"type": "regular", "indo": "Teknik", "gram": "Isim Jurusan", "img_url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400"},
+    "وَهُنَاكَ": {"type": "regular", "indo": "Dan di sana / Terdapat juga", "gram": "Isim Isyarah", "img_url": DEFAULT_IMG},
+    "أَيْضًا": {"type": "regular", "indo": "Juga / Pula", "gram": "Maf'ul Mutlaq", "img_url": DEFAULT_IMG},
+    "التَّرْبِيَةِ": {"type": "regular", "indo": "Pendidikan / Tarbiyah", "gram": "Isim Fakultas", "img_url": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400"},
+    "الشَّرِيعَةِ": {"type": "regular", "indo": "Syariah / Hukum Islam", "gram": "Isim Fakultas", "img_url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=400"},
+    "هَذِهِ": {"type": "regular", "indo": "Ini (Kata Tunjuk)", "gram": "Isim Isyarah", "img_url": DEFAULT_IMG},
+    "الكُلِّيَّاتِ": {"type": "regular", "indo": "Fakultas-fakultas", "gram": "Isim Jamak Muannats", "img_url": "https://images.unsplash.com/photo-1562774053-701939374585?w=400"},
+    "لِأَنَّهُمْ": {"type": "regular", "indo": "Karena mereka", "gram": "Harf Sababiyah + Dhamir", "img_url": DEFAULT_IMG},
+    "يُرِيدُونَ": {"type": "regular", "indo": "Mereka ingin / bertekad", "gram": "Fi'il Mudhari' Jamak", "img_url": DEFAULT_IMG},
+    "يَتَعَلَّمُوا": {"type": "regular", "indo": "Agar mereka belajar", "gram": "Fi'il Mudhari' Manshub", "img_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400"},
+    "يَحْضُرُ": {"type": "regular", "indo": "Menghadiri / Mengikuti", "gram": "Fi'il Mudhari'", "img_url": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400"},
+    "الدُّرُوسَ": {"type": "regular", "indo": "Pelajaran-pelajaran / Perkuliahan", "gram": "Isim Jamak Taksir", "img_url": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400"},
+    "الفَصْلِ": {"type": "regular", "indo": "Ruang Kelas", "gram": "Isim Tempat", "img_url": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400"},
+    "مَعَ": {"type": "regular", "indo": "Bersama / Dengan", "gram": "Zaraf Makan", "img_url": DEFAULT_IMG},
+    "وَيَذْهَبُونَ": {"type": "regular", "indo": "Dan mereka pergi", "gram": "Fi'il Mudhari' Jamak", "img_url": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400"},
+    "لِلْقِرَاءَةِ": {"type": "regular", "indo": "Untuk membaca", "gram": "Harf Jar + Masdar", "img_url": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=400"},
+    "وَالبَحْثِ": {"type": "regular", "indo": "Dan meriset / mencari data", "gram": "Isim Masdar", "img_url": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400"},
+    "عَنِ": {"type": "regular", "indo": "Tentang / Dari", "gram": "Harf Jar", "img_url": DEFAULT_IMG},
+    "المَعْلُومَاتِ": {"type": "regular", "indo": "Informasi / Data", "gram": "Isim Jamak Muannats", "img_url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400"},
+    "مِنْ": {"type": "regular", "indo": "Dari / Melalui", "gram": "Harf Jar", "img_url": DEFAULT_IMG},
+    "خِلَالِ": {"type": "regular", "indo": "Melalui / Sela-sela", "gram": "Zaraf", "img_url": DEFAULT_IMG},
+    "المُنَاقَشَةِ": {"type": "regular", "indo": "Diskusi / Tanya Jawab", "gram": "Isim Masdar", "img_url": "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=400"},
+    "الأَسَاتِذَةِ": {"type": "regular", "indo": "Para Dosen / Pengajar", "gram": "Isim Jamak", "img_url": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400"},
+    "وَالأَصْدِقَاءِ": {"type": "regular", "indo": "Dan teman-teman", "gram": "Isim Jamak Taksir", "img_url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400"},
+    "وَيَسْتَخْدِمُونَ": {"type": "regular", "indo": "Dan mereka menggunakan", "gram": "Fi'il Mudhari' Jamak", "img_url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400"},
+    "طُرُقًا": {"type": "regular", "indo": "Metode-metode / Cara", "gram": "Isim Jamak", "img_url": DEFAULT_IMG},
+    "حَدِيثَةً": {"type": "regular", "indo": "Modern / Terbaru", "gram": "Na'at / Kata Sifat", "img_url": DEFAULT_IMG},
+    "التَّعَلُّمِ": {"type": "regular", "indo": "Pembelajaran / Studi", "gram": "Isim Masdar", "img_url": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400"},
+    "لِكَيْ": {"type": "regular", "indo": "Supaya / Agar", "gram": "Harf Nashab", "img_url": DEFAULT_IMG},
+    "يَكُونُوا": {"type": "regular", "indo": "Agar mereka menjadi", "gram": "Fi'il Mudhari'", "img_url": DEFAULT_IMG},
+    "مُسْتَعِدِّينَ": {"type": "regular", "indo": "Siap sedia", "gram": "Khabar Kana (Jamak)", "img_url": "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400"},
+    "لِلْعَمَلِ": {"type": "regular", "indo": "Untuk bekerja", "gram": "Harf Jar + Masdar", "img_url": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400"}
 }
 
-# Fungsi Builder untuk Membuat Setiap Kata Interaktif
+# Fungsi Builder Pop-Up Interaktif Ber-Gambar untuk Setiap Kata
 def w(arabic_word, db_key=None):
     key = db_key if db_key else arabic_word
-    info = words_db.get(key, {"type": "regular", "indo": "Kata dalam teks", "gram": "Kata"})
+    info = words_db.get(key, {
+        "type": "regular", 
+        "indo": "Kata dalam teks", 
+        "gram": "Kosa kata", 
+        "img_url": DEFAULT_IMG
+    })
     
+    img_url = info.get("img_url", DEFAULT_IMG)
+
     if info["type"] == "target":
-        # Pop-Up Lengkap untuk 17 Mufrodat Utama
-        return f'''<span class="vocab-target">{arabic_word}<span class="tooltip-box"><img src="{info['img_url']}" class="popup-img"><b style="font-size:17px; color:#38bdf8;">{key}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span><br><div class="example-box"><b>📌 Contoh Kalimat:</b><br><span style="font-family:'Amiri'; font-size:16px;">{info['ar_ex']}</span><br><i style="color:#cbd5e1; font-size:11px;">"{info['id_ex']}"</i></div><div style="font-size:11px; margin-top:5px; color:#94a3b8;">{info['ctl']}</div></span></span>'''
+        # Pop-Up Lengkap 17 Mufrodat Utama
+        return f'''<span class="vocab-target">{arabic_word}<span class="tooltip-box"><img src="{img_url}" class="popup-img"><b style="font-size:17px; color:#38bdf8;">{key}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span><br><div class="example-box"><b>📌 Contoh Kalimat:</b><br><span style="font-family:'Amiri'; font-size:16px;">{info['ar_ex']}</span><br><i style="color:#cbd5e1; font-size:11px;">"{info['id_ex']}"</i></div><div style="font-size:11px; margin-top:5px; color:#94a3b8;">{info['ctl']}</div></span></span>'''
     else:
-        # Pop-Up Simpel untuk Kata Pendukung Lainnya
+        # Pop-Up Kata Pendukung (Tetap Ber-Gambar!)
         gram_info = f'<br><small style="color:#94a3b8;">({info.get("gram", "")})</small>' if "gram" in info else ""
-        return f'''<span class="vocab-regular">{arabic_word}<span class="tooltip-box" style="width:200px; text-align:center;"><b style="font-size:16px; color:#38bdf8;">{arabic_word}</b><br><span style="color:#fde047;">{info['indo']}</span>{gram_info}</span></span>'''
+        return f'''<span class="vocab-regular">{arabic_word}<span class="tooltip-box"><img src="{img_url}" class="popup-img"><b style="font-size:16px; color:#38bdf8;">{arabic_word}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span>{gram_info}</span></span>'''
 
 # 4. Header Aplikasi
 st.markdown('<h1 class="main-title">🎓 Smart Qira\'ah Reader</h1>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">Media Pembelajaran Maharah Qira\'ah Kelas 12 MA — Tema: Ad-Dirasah fil Jamiah</p>', unsafe_allow_html=True)
-st.caption("👉 **Petunjuk Guru:** *Setiap kata* dalam teks ini kini dapat diklik/disorot! Kata bergaris bawah biru adalah **17 Mufrodat Utama** (Pop-up Gambar + CTL), sedangkan kata lainnya menampilkan **Pop-up Arti & Tata Bahasa**.")
+st.caption("👉 **Petunjuk Guru:** *Semua kata* dalam teks bacaan ini interaktif! Klik/Sorot kata mana saja untuk melihat **Gambar Visual**, **Arti Bahasa Indonesia**, serta **Gramatikal/CTL**-nya.")
 
 # 5. Sidebar Bank Mufrodat Target
 target_keys = [k for k, v in words_db.items() if v.get("type") == "target"]
@@ -251,7 +266,7 @@ if selected_word:
     st.sidebar.markdown(f"**📌 Contoh Kalimat:**\n- {info['ar_ex']}\n  *( “{info['id_ex']}” )*")
     st.sidebar.info(info['ctl'])
 
-# 6. Layout Utama Teks Bacaan (Semua Kata Ber-Pop-up)
+# 6. Area Utama Teks Bacaan (100% Kata Ber-Pop-Up dan Ber-Gambar)
 col1, col2 = st.columns([2.2, 1])
 
 with col1:
@@ -260,7 +275,7 @@ with col1:
     # Paragraf 1
     st.markdown('<div class="arabic-title">الفقرة الأولى: الدِّرَاسَةُ فِي الجَامِعَةِ</div>', unsafe_allow_html=True)
     p1_html = f"""
-    {w("بَعْدَ")} {w("التَّخَرُّجِ")} {w("مِنَ")} {w("المَدْرَسَةِ", "المَدْرَسَةُ")} {w("الإِسْلَامِيَّةِ")}، {w("يُرِيدُ")} {w("كَثِيرٌ")} {w("مِنَ")} {w("الطُّلَّابِ", "الطُّلَّابُ")} {w("أَنْ")} {w("يَدْرُسُوا")} {w("فِي")} {w("الجَامِعَةِ", "الجَامِعَةُ")}. {w("يَذْهَبُ")} {w("الطُّلَّابُ", "الطُّلَّابُ")} {w("إِلَى")} {w("الجَامِعَةِ", "الجَامِعَةُ")} {w("لِلتَّسْجِيلِ", "التَّسْجِيلُ")} {w("وَتَقْدِيمِ")} {w("الأَوْرَاقِ")}. {w("فِي")} {w("الجَامِعَةِ", "الجَامِعَةُ")}، {w("يَتَعَلَّمُ")} {w("الطُّلَّابُ", "الطُّلَّابُ")} {w("أَشْيَاءَ")} {w("جَدِيدَةً")} {w("وَيَسْتَعِدُّونَ", "اِسْتَعَدَّ - يَسْتَعِدُّ")} {w("لِلْمُسْتَقْبَلِ", "المُسْتَقْبَلُ")}. {w("كَمَا")} {w("يَتَعَلَّمُونَ")} {w("أَنْ")} {w("يَعْتَمِدُوا", "اِعْتَمَدَ - يَعْتَمِدُ")} {w("عَلَى")} {w("أَنْفُسِهِمْ")}.
+    {w("بَعْدَ")} {w("التَّخَرُّجِ")} {w("مِنَ")} {w("المَدْرَسَةِ", "المَدْرَسَةُ")} {w("الثَّانَوِيَّةِ")} {w("الإِسْلَامِيَّةِ")}، {w("يُرِيدُ")} {w("كَثِيرٌ")} {w("مِنَ")} {w("الطُّلَّابِ", "الطُّلَّابُ")} {w("أَنْ")} {w("يَدْرُسُوا")} {w("فِي")} {w("الجَامِعَةِ", "الجَامِعَةُ")}. {w("يَذْهَبُ")} {w("الطُّلَّابُ", "الطُّلَّابُ")} {w("إِلَى")} {w("الجَامِعَةِ", "الجَامِعَةُ")} {w("لِلتَّسْجِيلِ", "التَّسْجِيلُ")} {w("وَتَقْدِيمِ")} {w("الأَوْرَاقِ")}. {w("فِي")} {w("الجَامِعَةِ", "الجَامِعَةُ")}، {w("يَتَعَلَّمُ")} {w("الطُّلَّابُ", "الطُّلَّابُ")} {w("أَشْيَاءَ")} {w("جَدِيدَةً")} {w("وَيَسْتَعِدُّونَ", "اِسْتَعَدَّ - يَسْتَعِدُّ")} {w("لِلْمُسْتَقْبَلِ", "المُسْتَقْبَلُ")}. {w("كَمَا")} {w("يَتَعَلَّمُونَ")} {w("أَنْ")} {w("يَعْتَمِدُوا", "اِعْتَمَدَ - يَعْتَمِدُ")} {w("عَلَى")} {w("أَنْفُسِهِمْ")}.
     """
     st.markdown(f'<div class="arabic-text">{p1_html}</div>', unsafe_allow_html=True)
 
