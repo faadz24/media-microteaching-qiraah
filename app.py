@@ -7,7 +7,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# 2. Injeksi CSS untuk Teks Arab, Pop-up Tooltip + Gambar untuk SEMUA KATA
+# 2. Injeksi CSS untuk Teks Arab, Pop-up Tooltip + Gambar + Contoh Kalimat SEMUA KATA
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
@@ -50,7 +50,7 @@ st.markdown("""
         margin-bottom: 15px;
     }
     
-    /* GAYA KATA TARGET (17 MUFRODAT UTAMA) */
+    /* GAYA KATA TARGET (17 MUFRODAT UTAMA - GARIS BIRU PUTUS-PUTUS) */
     .vocab-target {
         color: #2563eb;
         font-weight: bold;
@@ -65,7 +65,7 @@ st.markdown("""
         border-radius: 4px;
     }
     
-    /* GAYA KATA PENDUKUNG (SEMUA KATA LAIN DALAM TEKS) */
+    /* GAYA KATA PENDUKUNG (SEMUA KATA LAIN DALAM TEKS - GARIS ABU-ABU HALUS) */
     .vocab-regular {
         color: #0f172a;
         cursor: pointer;
@@ -83,7 +83,7 @@ st.markdown("""
     /* TOOLTIP / POP-UP FLOATING BOX */
     .tooltip-box {
         visibility: hidden;
-        width: 300px;
+        width: 310px;
         background-color: #0f172a;
         color: #ffffff;
         text-align: right;
@@ -137,7 +137,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Database Seluruh Kata dalam Teks Bacaan (Setiap kata ber-gambar spesifik!)
+DEFAULT_IMG = "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400"
+
+# 3. Database Seluruh Kata dalam Teks (SETIAP KATA memiliki FOTO + CONTOH KALIMAT ARAB & INDONESIA)
 words_db = {
     # --- 17 TARGET MUFRODAT UTAMA (FOTO + CONTOH KALIMAT + CTL) ---
     "المَدْرَسَةُ": {"type": "target", "indo": "Sekolah / Madrasah", "ctl": "💡 CTL: Jenjang MA sebelum ke Perguruan Tinggi.", "ar_ex": "يَتَعَلَّمُ الطُّلَّابُ فِي المَدْرَسَةِ الإِسْلَامِيَّةِ.", "id_ex": "Para siswa belajar di madrasah aliyah.", "img_url": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400"},
@@ -158,97 +160,101 @@ words_db = {
     "اِسْتَعَدَّ - يَسْتَعِدُّ": {"type": "target", "indo": "Bersiap-siap", "ctl": "💡 CTL: Persiapan berkas & mental kelas 12.", "ar_ex": "يَسْتَعِدُّ لِلاِمْتِحَانِ.", "id_ex": "Bersiap-siap menghadapi ujian.", "img_url": "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400"},
     "أَفَادَ - يُفِيدُ": {"type": "target", "indo": "Memberi Manfaat", "ctl": "💡 CTL: Pengabdian ilmu untuk kemaslahatan.", "ar_ex": "العِلْمُ يُفِيدُ النَّاسَ.", "id_ex": "Ilmu memberikan manfaat bagi manusia.", "img_url": "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=400"},
 
-    # --- SELURUH KATA PENDUKUNG DI LUAR 17 MUFRODAT (LENGKAP GAMBAR SPESIFIK) ---
-    "بَعْدَ": {"type": "regular", "indo": "Setelah", "gram": "Zaraf Zaman (Keterangan Waktu)", "img_url": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=400"},
-    "التَّخَرُّجِ": {"type": "regular", "indo": "Kelulusan / Wisuda", "gram": "Isim Masdar", "img_url": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400"},
-    "مِنَ": {"type": "regular", "indo": "Dari", "gram": "Harf Jar", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
-    "الثَّانَوِيَّةِ": {"type": "regular", "indo": "Tingkat Menengah / Aliyah", "gram": "Kata Sifat (Na'at)", "img_url": "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400"},
-    "الإِسْلَامِيَّةِ": {"type": "regular", "indo": "Islam / Keislaman", "gram": "Kata Sifat (Na'at)", "img_url": "https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?w=400"},
-    "يُرِيدُ": {"type": "regular", "indo": "Ingin / Menghendaki", "gram": "Fi'il Mudhari'", "img_url": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400"},
-    "كَثِيرٌ": {"type": "regular", "indo": "Banyak", "gram": "Isim Sifat", "img_url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400"},
-    "أَنْ": {"type": "regular", "indo": "Bahwa / Untuk", "gram": "Harf Nashab", "img_url": "https://images.unsplash.com/photo-1455849318743-b2233052fcff?w=400"},
-    "يَدْرُسُوا": {"type": "regular", "indo": "Belajar / Berkuliah", "gram": "Fi'il Mudhari' Jamak", "img_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400"},
-    "فِي": {"type": "regular", "indo": "Di / Di dalam", "gram": "Harf Jar", "img_url": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400"},
-    "يَذْهَبُ": {"type": "regular", "indo": "Pergi / Berangkat", "gram": "Fi'il Mudhari'", "img_url": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400"},
-    "إِلَى": {"type": "regular", "indo": "Ke / Kepada", "gram": "Harf Jar", "img_url": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400"},
-    "وَتَقْدِيمِ": {"type": "regular", "indo": "Dan menyerahkan / mengajukan", "gram": "Harf Athaf + Masdar", "img_url": "https://images.unsplash.com/photo-1450133064473-71024230f91b?w=400"},
-    "الأَوْرَاقِ": {"type": "regular", "indo": "Berkas-berkas / Dokumen", "gram": "Isim Jamak Taksir", "img_url": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400"},
-    "يَتَعَلَّمُ": {"type": "regular", "indo": "Belajar / Mempelajari", "gram": "Fi'il Mudhari'", "img_url": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400"},
-    "أَشْيَاءَ": {"type": "regular", "indo": "Hal-hal / Sesuatu", "gram": "Isim Jamak", "img_url": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400"},
-    "جَدِيدَةً": {"type": "regular", "indo": "Baru", "gram": "Na'at / Kata Sifat", "img_url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400"},
-    "كَمَا": {"type": "regular", "indo": "Sebagaimana / Juga", "gram": "Harf Sambung", "img_url": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400"},
-    "يَتَعَلَّمُونَ": {"type": "regular", "indo": "Mereka belajar", "gram": "Fi'il Mudhari' Jamak", "img_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400"},
-    "عَلَى": {"type": "regular", "indo": "Atas / Pada", "gram": "Harf Jar", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
-    "أَنْفُسِهِمْ": {"type": "regular", "indo": "Diri mereka sendiri", "gram": "Isim + Dhamir (Kemandirian)", "img_url": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400"},
-    "كُلُّ": {"type": "regular", "indo": "Setiap / Masing-masing", "gram": "Isim Mudhaf", "img_url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400"},
-    "طَالِبٍ": {"type": "regular", "indo": "Siswa / Pelajar", "gram": "Isim Mufrad (Tunggal)", "img_url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400"},
-    "الَّذِي": {"type": "regular", "indo": "Yang", "gram": "Isim Maushul (Kata Hubung)", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
-    "يُحِبُّهُ": {"type": "regular", "indo": "Ia menyukainya", "gram": "Fi'il Mudhari' + Dhamir", "img_url": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400"},
-    "يُنَاسِبُهُ": {"type": "regular", "indo": "Sesuai / Cocok baginya", "gram": "Fi'il Mudhari' + Dhamir", "img_url": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400"},
-    "مَنْ": {"type": "regular", "indo": "Barangsiapa / Siapa yang", "gram": "Isim Syarat / Maushul", "img_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"},
-    "يُحِبُّ": {"type": "regular", "indo": "Menyukai", "gram": "Fi'il Mudhari'", "img_url": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400"},
-    "الطِّبَّ": {"type": "regular", "indo": "Kedokteran / Ilmu Medis", "gram": "Isim Jurusan", "img_url": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400"},
-    "يَدْرُسُ": {"type": "regular", "indo": "Belajar / Berkuliah", "gram": "Fi'il Mudhari'", "img_url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400"},
-    "الطِّبِّ": {"type": "regular", "indo": "Kedokteran", "gram": "Isim Mudhaf Ilaih", "img_url": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400"},
-    "الهَنْدَسَةَ": {"type": "regular", "indo": "Teknik / Rekayasa", "gram": "Isim Jurusan", "img_url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400"},
-    "الهَنْدَسَةِ": {"type": "regular", "indo": "Teknik", "gram": "Isim Jurusan", "img_url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400"},
-    "وَهُنَاكَ": {"type": "regular", "indo": "Dan di sana / Terdapat juga", "gram": "Isim Isyarah", "img_url": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400"},
-    "أَيْضًا": {"type": "regular", "indo": "Juga / Pula", "gram": "Maf'ul Mutlaq", "img_url": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400"},
-    "التَّرْبِيَةِ": {"type": "regular", "indo": "Pendidikan / Tarbiyah", "gram": "Isim Fakultas", "img_url": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400"},
-    "الشَّرِيعَةِ": {"type": "regular", "indo": "Syariah / Hukum Islam", "gram": "Isim Fakultas", "img_url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=400"},
-    "هَذِهِ": {"type": "regular", "indo": "Ini (Kata Tunjuk)", "gram": "Isim Isyarah", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
-    "الكُلِّيَّاتِ": {"type": "regular", "indo": "Fakultas-fakultas", "gram": "Isim Jamak Muannats", "img_url": "https://images.unsplash.com/photo-1562774053-701939374585?w=400"},
-    "لِأَنَّهُمْ": {"type": "regular", "indo": "Karena mereka", "gram": "Harf Sababiyah + Dhamir", "img_url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400"},
-    "يُرِيدُونَ": {"type": "regular", "indo": "Mereka ingin / bertekad", "gram": "Fi'il Mudhari' Jamak", "img_url": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400"},
-    "يَتَعَلَّمُوا": {"type": "regular", "indo": "Agar mereka belajar", "gram": "Fi'il Mudhari' Manshub", "img_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400"},
-    "يَحْضُرُ": {"type": "regular", "indo": "Menghadiri / Mengikuti", "gram": "Fi'il Mudhari'", "img_url": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400"},
-    "الدُّرُوسَ": {"type": "regular", "indo": "Pelajaran-pelajaran / Perkuliahan", "gram": "Isim Jamak Taksir", "img_url": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400"},
-    "الفَصْلِ": {"type": "regular", "indo": "Ruang Kelas", "gram": "Isim Tempat", "img_url": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400"},
-    "مَعَ": {"type": "regular", "indo": "Bersama / Dengan", "gram": "Zaraf Makan", "img_url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400"},
-    "وَيَذْهَبُونَ": {"type": "regular", "indo": "Dan mereka pergi", "gram": "Fi'il Mudhari' Jamak", "img_url": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400"},
-    "لِلْقِرَاءَةِ": {"type": "regular", "indo": "Untuk membaca", "gram": "Harf Jar + Masdar", "img_url": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=400"},
-    "وَالبَحْثِ": {"type": "regular", "indo": "Dan meriset / mencari data", "gram": "Isim Masdar", "img_url": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400"},
-    "عَنِ": {"type": "regular", "indo": "Tentang / Dari", "gram": "Harf Jar", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
-    "المَعْلُومَاتِ": {"type": "regular", "indo": "Informasi / Data", "gram": "Isim Jamak Muannats", "img_url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400"},
-    "مِنْ": {"type": "regular", "indo": "Dari / Melalui", "gram": "Harf Jar", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
-    "خِلَالِ": {"type": "regular", "indo": "Melalui / Sela-sela", "gram": "Zaraf", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
-    "المُنَاقَشَةِ": {"type": "regular", "indo": "Diskusi / Tanya Jawab", "gram": "Isim Masdar", "img_url": "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=400"},
-    "الأَسَاتِذَةِ": {"type": "regular", "indo": "Para Dosen / Pengajar", "gram": "Isim Jamak dari Ustadz", "img_url": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400"},
-    "وَالأَصْدِقَاءِ": {"type": "regular", "indo": "Dan teman-teman", "gram": "Isim Jamak Taksir", "img_url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400"},
-    "وَيَسْتَخْدِمُونَ": {"type": "regular", "indo": "Dan mereka menggunakan", "gram": "Fi'il Mudhari' Jamak", "img_url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400"},
-    "طُرُقًا": {"type": "regular", "indo": "Metode-metode / Cara", "gram": "Isim Jamak", "img_url": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400"},
-    "حَدِيثَةً": {"type": "regular", "indo": "Modern / Terbaru", "gram": "Na'at / Kata Sifat", "img_url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400"},
-    "التَّعَلُّمِ": {"type": "regular", "indo": "Pembelajaran / Studi", "gram": "Isim Masdar", "img_url": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400"},
-    "لِكَيْ": {"type": "regular", "indo": "Supaya / Agar", "gram": "Harf Nashab", "img_url": "https://images.unsplash.com/photo-1455849318743-b2233052fcff?w=400"},
-    "يَكُونُوا": {"type": "regular", "indo": "Agar mereka menjadi", "gram": "Fi'il Mudhari' Naqis", "img_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400"},
-    "مُسْتَعِدِّينَ": {"type": "regular", "indo": "Siap sedia", "gram": "Khabar Kana (Jamak)", "img_url": "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400"},
-    "لِلْعَمَلِ": {"type": "regular", "indo": "Untuk bekerja", "gram": "Harf Jar + Masdar", "img_url": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400"}
+    # --- KATA PENDUKUNG DI LUAR 17 MUFRODAT (DILENGKAPI FOTO + CONTOH KALIMAT ARAB & INDONESIA) ---
+    "بَعْدَ": {"type": "regular", "indo": "Setelah", "gram": "Zaraf Zaman (Keterangan Waktu)", "ar_ex": "نَلْتَقِي بَعْدَ الصَّلَاةِ.", "id_ex": "Kita bertemu setelah shalat.", "img_url": "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=400"},
+    "التَّخَرُّجِ": {"type": "regular", "indo": "Kelulusan / Wisuda", "gram": "Isim Masdar", "ar_ex": "اِحْتَفَلَ الطُّلَّابُ بِالتَّخَرُّجِ.", "id_ex": "Para siswa merayakan kelulusan.", "img_url": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400"},
+    "مِنَ": {"type": "regular", "indo": "Dari", "gram": "Harf Jar", "ar_ex": "خَرَجَ الطَّالِبُ مِنَ الفَصْلِ.", "id_ex": "Siswa itu keluar dari kelas.", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
+    "الثَّانَوِيَّةِ": {"type": "regular", "indo": "Tingkat Menengah / Aliyah", "gram": "Kata Sifat (Na'at)", "ar_ex": "دَرَسْتُ فِي المَدْرَسَةِ الثَّانَوِيَّةِ.", "id_ex": "Saya belajar di madrasah aliyah.", "img_url": "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400"},
+    "الإِسْلَامِيَّةِ": {"type": "regular", "indo": "Islam / Keislaman", "gram": "Kata Sifat (Na'at)", "ar_ex": "تِلْكَ المَدْرَسَةُ إِسْلَامِيَّةٌ.", "id_ex": "Sekolah itu bernuansa islami.", "img_url": "https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?w=400"},
+    "يُرِيدُ": {"type": "regular", "indo": "Ingin / Menghendaki", "gram": "Fi'il Mudhari'", "ar_ex": "يُرِيدُ الطَّالِبُ أَنْ يَنْجَحَ.", "id_ex": "Siswa itu ingin sukses.", "img_url": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400"},
+    "كَثِيرٌ": {"type": "regular", "indo": "Banyak", "gram": "Isim Sifat", "ar_ex": "فِي المَكْتَبَةِ كُتُبٌ كَثِيرَةٌ.", "id_ex": "Di perpustakaan ada banyak buku.", "img_url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400"},
+    "أَنْ": {"type": "regular", "indo": "Bahwa / Untuk", "gram": "Harf Nashab", "ar_ex": "أُرِيدُ أَنْ أَتَعَلَّمَ العَرَبِيَّةَ.", "id_ex": "Saya ingin belajar bahasa Arab.", "img_url": "https://images.unsplash.com/photo-1455849318743-b2233052fcff?w=400"},
+    "يَدْرُسُوا": {"type": "regular", "indo": "Belajar / Berkuliah", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "يُرِيدُ الطُّلَّابُ أَنْ يَدْرُسُوا بِنَشَاطٍ.", "id_ex": "Para siswa ingin belajar dengan giat.", "img_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400"},
+    "فِي": {"type": "regular", "indo": "Di / Di dalam", "gram": "Harf Jar", "ar_ex": "الأُسْتَاذُ فِي الفَصْلِ.", "id_ex": "Dosen ada di dalam kelas.", "img_url": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400"},
+    "يَذْهَبُ": {"type": "regular", "indo": "Pergi / Berangkat", "gram": "Fi'il Mudhari'", "ar_ex": "يَذْهَبُ الطَّالِبُ إِلَى المَدْرَسَةِ.", "id_ex": "Siswa itu pergi ke sekolah.", "img_url": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400"},
+    "إِلَى": {"type": "regular", "indo": "Ke / Kepada", "gram": "Harf Jar", "ar_ex": "سَافَرَ الأُسْتَاذُ إِلَى المَدِينَةِ.", "id_ex": "Dosen itu bepergian ke kota.", "img_url": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400"},
+    "وَتَقْدِيمِ": {"type": "regular", "indo": "Dan menyerahkan / mengajukan", "gram": "Harf Athaf + Masdar", "ar_ex": "يَجِبُ تَقْدِيمُ الأَوْرَاقِ فَوْرًا.", "id_ex": "Penyerahan berkas harus dilakukan segera.", "img_url": "https://images.unsplash.com/photo-1450133064473-71024230f91b?w=400"},
+    "الأَوْرَاقِ": {"type": "regular", "indo": "Berkas-berkas / Dokumen", "gram": "Isim Jamak Taksir", "ar_ex": "قَدَّمَ الطَّالِبُ الأَوْرَاقَ المَطْلُوبَةَ.", "id_ex": "Siswa menyerahkan berkas-berkas yang diminta.", "img_url": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400"},
+    "يَتَعَلَّمُ": {"type": "regular", "indo": "Belajar / Mempelajari", "gram": "Fi'il Mudhari'", "ar_ex": "يَتَعَلَّمُ الطَّالِبُ اللُّغَةَ العَرَبِيَّةَ.", "id_ex": "Siswa itu mempelajari bahasa Arab.", "img_url": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400"},
+    "أَشْيَاءَ": {"type": "regular", "indo": "Hal-hal / Sesuatu", "gram": "Isim Jamak", "ar_ex": "تَعَلَّمْتُ أَشْيَاءَ مُفِيدَةً.", "id_ex": "Saya mempelajari hal-hal yang bermanfaat.", "img_url": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400"},
+    "جَدِيدَةً": {"type": "regular", "indo": "Baru", "gram": "Na'at / Kata Sifat", "ar_ex": "اشْتَرَيْتُ كُتُبًا جَدِيدَةً.", "id_ex": "Saya membeli buku-buku baru.", "img_url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400"},
+    "كَمَا": {"type": "regular", "indo": "Sebagaimana / Juga", "gram": "Harf Sambung", "ar_ex": "يَقْرَأُ الطَّالِبُ كَمَا يَكْتُبُ.", "id_ex": "Siswa itu membaca sebagaimana ia menulis.", "img_url": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400"},
+    "يَتَعَلَّمُونَ": {"type": "regular", "indo": "Mereka belajar", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "الطُّلَّابُ يَتَعَلَّمُونَ بِنَشَاطٍ.", "id_ex": "Para siswa belajar dengan aktif.", "img_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400"},
+    "عَلَى": {"type": "regular", "indo": "Atas / Pada", "gram": "Harf Jar", "ar_ex": "الكِتَابُ عَلَى المَكْتَبِ.", "id_ex": "Buku itu ada di atas meja.", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
+    "أَنْفُسِهِمْ": {"type": "regular", "indo": "Diri mereka sendiri", "gram": "Isim + Dhamir (Kemandirian)", "ar_ex": "يَعْتَمِدُ الطُّلَّابُ عَلَى أَنْفُسِهِمْ.", "id_ex": "Para siswa mengandalkan diri mereka sendiri.", "img_url": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400"},
+    "كُلُّ": {"type": "regular", "indo": "Setiap / Masing-masing", "gram": "Isim Mudhaf", "ar_ex": "كُلُّ طَالِبٍ يَحْضُرُ فِي الفَصْلِ.", "id_ex": "Setiap siswa hadir di kelas.", "img_url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400"},
+    "طَالِبٍ": {"type": "regular", "indo": "Siswa / Pelajar", "gram": "Isim Mufrad (Tunggal)", "ar_ex": "هَذَا طَالِبٌ مُجْتَهِدٌ.", "id_ex": "Ini adalah siswa yang rajin.", "img_url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400"},
+    "الَّذِي": {"type": "regular", "indo": "Yang", "gram": "Isim Maushul (Kata Hubung)", "ar_ex": "هَذَا هُوَ الأُسْتَاذُ الَّذِي يَدْرُسُنَا.", "id_ex": "Ini adalah dosen yang mengajar kami.", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
+    "يُحِبُّهُ": {"type": "regular", "indo": "Ia menyukainya", "gram": "Fi'il Mudhari' + Dhamir", "ar_ex": "هَذَا قِسْمٌ يُحِبُّهُ الطَّالِبُ.", "id_ex": "Ini adalah jurusan yang disukai siswa.", "img_url": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400"},
+    "يُنَاسِبُهُ": {"type": "regular", "indo": "Sesuai / Cocok baginya", "gram": "Fi'il Mudhari' + Dhamir", "ar_ex": "اخْتَارَ التَّخَصُّصَ الَّذِي يُنَاسِبُهُ.", "id_ex": "Ia memilih jurusan yang sesuai baginya.", "img_url": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400"},
+    "مَنْ": {"type": "regular", "indo": "Barangsiapa / Siapa yang", "gram": "Isim Syarat / Maushul", "ar_ex": "مَنْ يَجْتَهِدْ يَنْجَحْ.", "id_ex": "Barangsiapa bersungguh-sungguh maka ia sukses.", "img_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"},
+    "يُحِبُّ": {"type": "regular", "indo": "Menyukai", "gram": "Fi'il Mudhari'", "ar_ex": "يُحِبُّ الطَّالِبُ القِرَاءَةَ.", "id_ex": "Siswa itu menyukai membaca.", "img_url": "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=400"},
+    "الطِّبَّ": {"type": "regular", "indo": "Kedokteran / Ilmu Medis", "gram": "Isim Jurusan", "ar_ex": "يَدْرُسُ أَحْمَدُ الطِّبَّ.", "id_ex": "Ahmad belajar ilmu kedokteran.", "img_url": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400"},
+    "يَدْرُسُ": {"type": "regular", "indo": "Belajar / Berkuliah", "gram": "Fi'il Mudhari'", "ar_ex": "يَدْرُسُ الطَّالِبُ فِي الفَصْلِ.", "id_ex": "Siswa itu belajar di kelas.", "img_url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400"},
+    "الطِّبِّ": {"type": "regular", "indo": "Kedokteran", "gram": "Isim Mudhaf Ilaih", "ar_ex": "تَخَرَّجَ مِنْ كُلِّيَّةِ الطِّبِّ.", "id_ex": "Ia lulus dari Fakultas Kedokteran.", "img_url": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400"},
+    "الهَنْدَسَةَ": {"type": "regular", "indo": "Teknik / Rekayasa", "gram": "Isim Jurusan", "ar_ex": "يُحِبُّ زَيْدٌ الهَنْدَسَةَ.", "id_ex": "Zaid menyukai bidang teknik.", "img_url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400"},
+    "الهَنْدَسَةِ": {"type": "regular", "indo": "Teknik", "gram": "Isim Jurusan", "ar_ex": "يَدْرُسُ فِي كُلِّيَّةِ الهَنْدَسَةِ.", "id_ex": "Ia belajar di Fakultas Teknik.", "img_url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400"},
+    "وَهُنَاكَ": {"type": "regular", "indo": "Dan di sana / Terdapat juga", "gram": "Isim Isyarah", "ar_ex": "وَهُنَاكَ كُلِّيَّاتٌ كَثِيرَةٌ.", "id_ex": "Dan di sana terdapat banyak fakultas.", "img_url": "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400"},
+    "أَيْضًا": {"type": "regular", "indo": "Juga / Pula", "gram": "Maf'ul Mutlaq", "ar_ex": "أَنَا طَالِبٌ أَيْضًا.", "id_ex": "Saya juga seorang siswa.", "img_url": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400"},
+    "التَّرْبِيَةِ": {"type": "regular", "indo": "Pendidikan / Tarbiyah", "gram": "Isim Fakultas", "ar_ex": "يَدْرُسُ فِي كُلِّيَّةِ التَّرْبِيَةِ.", "id_ex": "Ia belajar di Fakultas Pendidikan (Tarbiyah).", "img_url": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400"},
+    "الشَّرِيعَةِ": {"type": "regular", "indo": "Syariah / Hukum Islam", "gram": "Isim Fakultas", "ar_ex": "يَدْرُسُ الفِقْهَ فِي كُلِّيَّةِ الشَّرِيعَةِ.", "id_ex": "Ia belajar fikih di Fakultas Syariah.", "img_url": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=400"},
+    "هَذِهِ": {"type": "regular", "indo": "Ini (Kata Tunjuk)", "gram": "Isim Isyarah", "ar_ex": "هَذِهِ جَامِعَةٌ مَشْهُورَةٌ.", "id_ex": "Ini adalah universitas yang terkenal.", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
+    "الكُلِّيَّاتِ": {"type": "regular", "indo": "Fakultas-fakultas", "gram": "Isim Jamak Muannats", "ar_ex": "تَضُمُّ الجَامِعَةُ هَذِهِ الكُلِّيَّاتِ.", "id_ex": "Universitas itu mencakup fakultas-fakultas ini.", "img_url": "https://images.unsplash.com/photo-1562774053-701939374585?w=400"},
+    "لِأَنَّهُمْ": {"type": "regular", "indo": "Karena mereka", "gram": "Harf Sababiyah + Dhamir", "ar_ex": "يَجْتَهِدُونَ لِأَنَّهُمْ يُرِيدُونَ النَّجَاحَ.", "id_ex": "Mereka bersungguh-sungguh karena menginginkan kelulusan.", "img_url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400"},
+    "يُرِيدُونَ": {"type": "regular", "indo": "Mereka ingin / bertekad", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "الطُّلَّابُ يُرِيدُونَ التَّفَوُّقَ.", "id_ex": "Para siswa ingin meraih prestasi.", "img_url": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400"},
+    "يَتَعَلَّمُوا": {"type": "regular", "indo": "Agar mereka belajar", "gram": "Fi'il Mudhari' Manshub", "ar_ex": "يَذْهَبُونَ لِكَيْ يَتَعَلَّمُوا.", "id_ex": "Mereka pergi supaya mereka belajar.", "img_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400"},
+    "يَحْضُرُ": {"type": "regular", "indo": "Menghadiri / Mengikuti", "gram": "Fi'il Mudhari'", "ar_ex": "يَحْضُرُ الطَّالِبُ فِي الوَقْتِ المُنَاسِبِ.", "id_ex": "Siswa hadir pada waktu yang tepat.", "img_url": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400"},
+    "الدُّرُوسَ": {"type": "regular", "indo": "Pelajaran-pelajaran / Perkuliahan", "gram": "Isim Jamak Taksir", "ar_ex": "يَفْهَمُ الطَّالِبُ الدُّرُوسَ جَيِّدًا.", "id_ex": "Siswa paham pelajaran-pelajaran dengan baik.", "img_url": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400"},
+    "الفَصْلِ": {"type": "regular", "indo": "Ruang Kelas", "gram": "Isim Tempat", "ar_ex": "يَجْلِسُ الطُّلَّابُ فِي الفَصْلِ.", "id_ex": "Para siswa duduk di ruang kelas.", "img_url": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400"},
+    "مَعَ": {"type": "regular", "indo": "Bersama / Dengan", "gram": "Zaraf Makan", "ar_ex": "يَتَنَاقَشُ الطَّالِبُ مَعَ الأُسْتَاذِ.", "id_ex": "Siswa berdiskusi bersama dosen.", "img_url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400"},
+    "وَيَذْهَبُونَ": {"type": "regular", "indo": "Dan mereka pergi", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَذْهَبُونَ إِلَى المَكْتَبَةِ كُلَّ يَوْمٍ.", "id_ex": "Dan mereka pergi ke perpustakaan setiap hari.", "img_url": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=400"},
+    "لِلْقِرَاءَةِ": {"type": "regular", "indo": "Untuk membaca", "gram": "Harf Jar + Masdar", "ar_ex": "يَذْهَبُ إِلَى المَكْتَبَةِ لِلْقِرَاءَةِ.", "id_ex": "Ia pergi ke perpustakaan untuk membaca.", "img_url": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=400"},
+    "وَالبَحْثِ": {"type": "regular", "indo": "Dan meriset / mencari data", "gram": "Isim Masdar", "ar_ex": "يَقُومُ الطُّلَّابُ بِالقِرَاءَةِ وَالبَحْثِ.", "id_ex": "Para siswa melakukan pembacaan dan penelitian.", "img_url": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400"},
+    "عَنِ": {"type": "regular", "indo": "Tentang / Dari", "gram": "Harf Jar", "ar_ex": "يَبْحَثُ الطَّالِبُ عَنِ المَعْلُومَاتِ.", "id_ex": "Siswa mencari informasi.", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
+    "المَعْلُومَاتِ": {"type": "regular", "indo": "Informasi / Data", "gram": "Isim Jamak Muannats", "ar_ex": "يَجْمَعُ الطَّالِبُ المَعْلُومَاتِ المَفِيدَةَ.", "id_ex": "Siswa mengumpulkan informasi yang berguna.", "img_url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400"},
+    "مِنْ": {"type": "regular", "indo": "Dari / Melalui", "gram": "Harf Jar", "ar_ex": "تَعَلَّمْتُ الكَثِيرَ مِنْ الأُسْتَاذِ.", "id_ex": "Saya belajar banyak hal dari dosen.", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
+    "خِلَالِ": {"type": "regular", "indo": "Melalui / Sela-sela", "gram": "Zaraf", "ar_ex": "نَتَعَلَّمُ مِنْ خِلَالِ المُنَاقَشَةِ.", "id_ex": "Kita belajar melalui diskusi.", "img_url": "https://images.unsplash.com/photo-1508873696983-2df515122519?w=400"},
+    "المُنَاقَشَةِ": {"type": "regular", "indo": "Diskusi / Tanya Jawab", "gram": "Isim Masdar", "ar_ex": "جَرَتْ المُنَاقَشَةُ بِبَالِغِ الاِهْتِمَامِ.", "id_ex": "Diskusi berlangsung dengan penuh perhatian.", "img_url": "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=400"},
+    "الأَسَاتِذَةِ": {"type": "regular", "indo": "Para Dosen / Pengajar", "gram": "Isim Jamak dari Ustadz", "ar_ex": "يَحْتَرِمُ الطُّلَّابُ الأَسَاتِذَةَ.", "id_ex": "Para siswa menghormati para dosen.", "img_url": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400"},
+    "وَالأَصْدِقَاءِ": {"type": "regular", "indo": "Dan teman-teman", "gram": "Isim Jamak Taksir", "ar_ex": "يَتَكَلَّمُ الطَّالِبُ مَعَ الأَصْدِقَاءِ.", "id_ex": "Siswa berbicara bersama teman-teman.", "img_url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400"},
+    "وَيَسْتَخْدِمُونَ": {"type": "regular", "indo": "Dan mereka menggunakan", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَسْتَخْدِمُونَ الحَاسُوبَ فِي الدِّرَاسَةِ.", "id_ex": "Dan mereka menggunakan komputer dalam belajar.", "img_url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400"},
+    "طُرُقًا": {"type": "regular", "indo": "Metode-metode / Cara", "gram": "Isim Jamak", "ar_ex": "يَتَّبِعُ الأُسْتَاذُ طُرُقًا حَدِيثَةً.", "id_ex": "Dosen menerapkan metode-metode modern.", "img_url": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400"},
+    "حَدِيثَةً": {"type": "regular", "indo": "Modern / Terbaru", "gram": "Na'at / Kata Sifat", "ar_ex": "يَسْتَخْدِمُونَ وَسَائِلَ حَدِيثَةً.", "id_ex": "Mereka menggunakan media modern.", "img_url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400"},
+    "التَّعَلُّمِ": {"type": "regular", "indo": "Pembelajaran / Studi", "gram": "Isim Masdar", "ar_ex": "التَّعَلُّمُ عَمَلِيَّةٌ مُسْتَمِرَّةٌ.", "id_ex": "Pembelajaran adalah proses yang berkelanjutan.", "img_url": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400"},
+    "لِكَيْ": {"type": "regular", "indo": "Supaya / Agar", "gram": "Harf Nashab", "ar_ex": "ادْرُسْ جَيِّدًا لِكَيْ تَنْجَحَ.", "id_ex": "Belajarlah dengan baik agar kamu lulus.", "img_url": "https://images.unsplash.com/photo-1455849318743-b2233052fcff?w=400"},
+    "يَكُونُوا": {"type": "regular", "indo": "Agar mereka menjadi", "gram": "Fi'il Mudhari' Naqis", "ar_ex": "يَتَعَلَّمُونَ لِكَيْ يَكُونُوا نَاجِحِينَ.", "id_ex": "Mereka belajar agar menjadi orang-orang sukses.", "img_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400"},
+    "مُسْتَعِدِّينَ": {"type": "regular", "indo": "Siap sedia", "gram": "Khabar Kana (Jamak)", "ar_ex": "الطُّلَّابُ مُسْتَعِدُّونَ لِلْعَمَلِ.", "id_ex": "Para siswa siap untuk bekerja.", "img_url": "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400"},
+    "لِلْعَمَلِ": {"type": "regular", "indo": "Untuk bekerja", "gram": "Harf Jar + Masdar", "ar_ex": "يَسْتَعِدُّ الخِرِّيجُونَ لِلْعَمَلِ.", "id_ex": "Para lulusan bersiap untuk bekerja.", "img_url": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400"}
 }
 
-# Fungsi Builder Pop-Up Interaktif Ber-Gambar untuk Setiap Kata
+# Fungsi Builder Pop-Up Interaktif Ber-Gambar & Ber-Contoh Kalimat untuk SEMUA KATA
 def w(arabic_word, db_key=None):
     key = db_key if db_key else arabic_word
     info = words_db.get(key, {
         "type": "regular", 
         "indo": "Kata dalam teks", 
         "gram": "Kosa kata", 
-        "img_url": "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400"
+        "img_url": DEFAULT_IMG,
+        "ar_ex": "هَذِهِ كَلِمَةٌ فِي النَّصِّ.",
+        "id_ex": "Ini adalah kata di dalam teks."
     })
     
     img_url = info["img_url"]
+    ar_ex = info.get("ar_ex", "هَذِهِ كَلِمَةٌ فِي النَّصِّ.")
+    id_ex = info.get("id_ex", "Ini adalah kata di dalam teks.")
 
     if info["type"] == "target":
-        # Pop-Up Lengkap 17 Mufrodat Utama (Biru Putus-putus)
-        return f'''<span class="vocab-target">{arabic_word}<span class="tooltip-box"><img src="{img_url}" class="popup-img"><b style="font-size:17px; color:#38bdf8;">{key}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span><br><div class="example-box"><b>📌 Contoh Kalimat:</b><br><span style="font-family:'Amiri'; font-size:16px;">{info['ar_ex']}</span><br><i style="color:#cbd5e1; font-size:11px;">"{info['id_ex']}"</i></div><div style="font-size:11px; margin-top:5px; color:#94a3b8;">{info['ctl']}</div></span></span>'''
+        # Pop-Up Lengkap 17 Mufrodat Utama (Garis Biru Putus-putus + Gambar + Contoh Kalimat + CTL)
+        return f'''<span class="vocab-target">{arabic_word}<span class="tooltip-box"><img src="{img_url}" class="popup-img"><b style="font-size:17px; color:#38bdf8;">{key}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span><br><div class="example-box"><b>📌 Contoh Kalimat:</b><br><span style="font-family:'Amiri'; font-size:16px;">{ar_ex}</span><br><i style="color:#cbd5e1; font-size:11px;">"{id_ex}"</i></div><div style="font-size:11px; margin-top:5px; color:#94a3b8;">{info['ctl']}</div></span></span>'''
     else:
-        # Pop-Up Kata Pendukung (Garis Halus Grey, Tetap Punya Gambar Spesifik!)
+        # Pop-Up Kata Pendukung (Garis Halus Abu-abu + Gambar + Contoh Kalimat + Tata Bahasa)
         gram_info = f'<br><small style="color:#94a3b8;">({info.get("gram", "")})</small>' if "gram" in info else ""
-        return f'''<span class="vocab-regular">{arabic_word}<span class="tooltip-box"><img src="{img_url}" class="popup-img"><b style="font-size:16px; color:#38bdf8;">{arabic_word}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span>{gram_info}</span></span>'''
+        return f'''<span class="vocab-regular">{arabic_word}<span class="tooltip-box"><img src="{img_url}" class="popup-img"><b style="font-size:16px; color:#38bdf8;">{arabic_word}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span>{gram_info}<br><div class="example-box"><b>📌 Contoh Kalimat:</b><br><span style="font-family:'Amiri'; font-size:15px;">{ar_ex}</span><br><i style="color:#cbd5e1; font-size:11px;">"{id_ex}"</i></div></span></span>'''
 
 # 4. Header Aplikasi
 st.markdown('<h1 class="main-title">🎓 Smart Qira\'ah Reader</h1>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">Media Pembelajaran Maharah Qira\'ah Kelas 12 MA — Tema: Ad-Dirasah fil Jamiah</p>', unsafe_allow_html=True)
-st.caption("👉 **Petunjuk Guru:** *Seluruh kata tanpa terkecuali* dalam teks ini kini interaktif! Arahkan/Klik kata mana saja di layar untuk melihat gambar foto visual, arti bahasa Indonesia, serta penjelasannya.")
+st.caption("👉 **Petunjuk Guru:** *Seluruh kata tanpa terkecuali* di teks ini dapat diklik/disorot! Setiap kata kini memuat **Foto Asli Unsplash**, **Terjemahan**, **Contoh Kalimat Berharakat**, serta **Gramatikal/CTL**-nya.")
 
 # 5. Sidebar Bank Mufrodat Target
 target_keys = [k for k, v in words_db.items() if v.get("type") == "target"]
@@ -263,7 +269,7 @@ if selected_word:
     st.sidebar.markdown(f"**📌 Contoh Kalimat:**\n- {info['ar_ex']}\n  *( “{info['id_ex']}” )*")
     st.sidebar.info(info['ctl'])
 
-# 6. Area Utama Teks Bacaan (100% Seluruh Kata Memiliki Gambar Penuh)
+# 6. Area Utama Teks Bacaan (100% Seluruh Kata Ber-Pop-Up + Gambar + Contoh Kalimat)
 col1, col2 = st.columns([2.2, 1])
 
 with col1:
@@ -288,7 +294,7 @@ with col1:
     p3_html = f"""
     {w("فِي")} {w("الجَامِعَةِ", "الجَامِعَةُ")}، {w("يَحْضُرُ")} {w("الطُّلَّابُ", "الطُّلَّابُ")} {w("الدُّرُوسَ")} {w("فِي")} {w("الفَصْلِ")} {w("مَعَ")} {w("الأُسْتَاذِ", "الأُسْتَاذُ")}. {w("وَيَذْهَبُونَ")} {w("إِلَى")} {w("المَكْتَبَةِ", "المَكْتَبَةُ")} {w("لِلْقِرَاءَةِ")} {w("وَالبَحْثِ")} {w("عَنِ")} {w("المَعْلُومَاتِ")}. {w("كَمَا")} {w("يَتَعَلَّمُونَ")} {w("مِنْ")} {w("خِلَالِ")} {w("المُنَاقَشَةِ")} {w("مَعَ")} {w("الأَسَاتِذَةِ", "الأُسْتَاذُ")} {w("وَالأَصْدِقَاءِ")}. {w("وَيَسْتَخْدِمُونَ")} {w("طُرُقًا")} {w("حَدِيثَةً")} {w("فِي")} {w("التَّعَلُّمِ")} {w("لِكَيْ")} {w("يَكُونُوا")} {w("مُسْتَعِدِّينَ", "اِسْتَعَدَّ - يَسْتَعِدُّ")} {w("لِلْعَمَلِ")} {w("فِي")} {w("المُسْتَقْبَلِ", "المُسْتَقْبَلُ")}.
     """
-    st.markdown(f'<div class="arabic-text">{p3_html}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="arabic-text">{p1_html if False else p3_html}</div>', unsafe_allow_html=True)
 
 with col2:
     st.subheader("💡 Diskusi Kontekstual (CTL)")
