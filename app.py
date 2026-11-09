@@ -169,28 +169,28 @@ vocab_db = {
         "ctl": "💡 CTL: Wadah jurusan sejenis (Tarbiyah, Kedokteran, Teknik).",
         "ar_ex": "تَقَعُ كُلِّيَّةُ الطِّبِّ فِي وَسَطِ الجَامِعَةِ.",
         "id_ex": "Fakultas Kedokteran terletak di pusat kampus.",
-        "img_url": "https://images.unsplash.com/photo-1562774053-701939374585?w=400"
+        "img_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHXQrLCTDJO5HwipgLuTDS47K4R5b_FTEm3qeIkH85NUpNluiYY_6v5h38&s=10"
     },
     "المَكْتَبَةُ": {
         "indo": "Perpustakaan",
         "ctl": "💡 CTL: Pusat referensi bacaan dan riset tugas mahasiswa.",
         "ar_ex": "يَقْرَأُ الطَّالِبُ الكُتُبَ فِي المَكْتَبَةِ.",
         "id_ex": "Mahasiswa membaca buku-buku di perpustakaan.",
-        "img_url": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=400"
+        "img_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQK82yIeFshhxzKR1e27JNO0mU-kAMs4gMqty2-yAiLw&s=10"
     },
     "الأُسْتَاذُ": {
         "indo": "Dosen / Pengajar",
         "ctl": "💡 CTL: Tenaga pengajar dan pembimbing riset kampus.",
         "ar_ex": "يَشْرَحُ الأُسْتَاذُ الدَّرْسَ بِوُضُوحٍ.",
         "id_ex": "Dosen menjelaskan pelajaran dengan jelas.",
-        "img_url": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400"
+        "img_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXkzvLPJkKtv7DZJ7IzCNvrF-_fgY9sMoa9q4-pftxvQ&s=10"
     },
     "المُجْتَمَعُ": {
         "indo": "Masyarakat / Komunitas",
         "ctl": "💡 CTL: Muara pengabdian ilmu lulusan kampus.",
         "ar_ex": "نَحْنُ نَعْمَلُ لِخِدْمَةِ المُجْتَمَعِ.",
         "id_ex": "Kita bekerja untuk mengabdi kepada masyarakat.",
-        "img_url": "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=400"
+        "img_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSp6fdpzmFUyGWig-Z18j_PQCdoy4RT5qVbZ0i71hTrsg&s=10"
     },
     "وَاصَلَ - يُوَاصِلُ": {
         "indo": "Melanjutkan",
