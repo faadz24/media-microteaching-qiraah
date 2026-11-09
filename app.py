@@ -1,6 +1,6 @@
 import streamlit as st
 
-# 1. Konfigurasi Halaman (Harus di baris pertama setelah import)
+# 1. Konfigurasi Halaman (Harus berada di paling atas setelah import)
 st.set_page_config(
     page_title="Smart Qira'ah Reader: Ad-Dirasah fil Jamiah",
     page_icon="🎓",
@@ -50,7 +50,7 @@ st.markdown("""
         margin-bottom: 15px;
     }
     
-    /* STYLE POP-UP / TOOLTIP INTERAKTIF + GAMBAR */
+    /* STYLE POP-UP / TOOLTIP INTERAKTIF + GAMBAR KONTEKSTUAL */
     .vocab {
         color: #2563eb;
         font-weight: bold;
@@ -66,12 +66,12 @@ st.markdown("""
     }
     .vocab .tooltip-box {
         visibility: hidden;
-        width: 310px;
+        width: 320px;
         background-color: #0f172a;
         color: #ffffff;
         text-align: right;
         border-radius: 12px;
-        padding: 16px;
+        padding: 14px;
         position: absolute;
         z-index: 9999;
         bottom: 125%;
@@ -101,12 +101,13 @@ st.markdown("""
         opacity: 1;
     }
     
-    .svg-container {
-        text-align: center;
-        background-color: #1e293b;
-        padding: 10px;
+    .popup-img {
+        width: 100%;
+        height: 140px;
+        object-fit: cover;
         border-radius: 8px;
         margin-bottom: 10px;
+        border: 1px solid #334155;
     }
     .example-box {
         background-color: #1e293b;
@@ -119,138 +120,138 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Database 17 Mufrodat Lengkap (SVG, Terjemahan, Contoh Kalimat, & CTL)
+# 3. Database 17 Mufrodat Lengkap dengan Gambar Foto Kontekstual Asli (Unsplash)
 vocab_db = {
     "المَدْرَسَةُ": {
         "indo": "Sekolah / Madrasah",
         "ctl": "💡 CTL: Jenjang pendidikan awal (MA) sebelum ke Perguruan Tinggi.",
         "ar_ex": "يَتَعَلَّمُ الطُّلَّابُ فِي المَدْرَسَةِ الإِسْلَامِيَّةِ.",
         "id_ex": "Para siswa belajar di madrasah aliyah.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400"
     },
     "الطُّلَّابُ": {
         "indo": "Siswa / Mahasiswa",
         "ctl": "💡 CTL: Transisi peran dari siswa MA menjadi mahasiswa mandiri.",
         "ar_ex": "الطُّلَّابُ يَسْتَعِدُّونَ لِلاِمْتِحَانِ النِّهَائِيِّ.",
         "id_ex": "Para siswa sedang bersiap menghadapi ujian akhir.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400"
     },
     "الجَامِعَةُ": {
         "indo": "Universitas / Perguruan Tinggi",
         "ctl": "💡 CTL: Lembaga tinggi tujuan lulusan MA (PTN, PTKIN).",
         "ar_ex": "يَرْغَبُ أَحْمَدُ فِي الدِّرَاسَةِ بِالجَامِعَةِ الحُكُومِيَّةِ.",
         "id_ex": "Ahmad ingin berkuliah di perguruan tinggi negeri.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M3 21h18M3 10h18M5 10v11M19 10v11M9 10v11M15 10v11M12 3l9 7H3l9-7z"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=400"
     },
     "المُسْتَقْبَلُ": {
         "indo": "Masa Depan",
         "ctl": "💡 CTL: Cita-cita karier yang dirancang siswa kelas 12.",
         "ar_ex": "التَّخْطِيطُ الجَيِّدُ مُهِمٌّ لِلْمُسْتَقْبَلِ.",
         "id_ex": "Perencanaan yang baik sangat penting untuk masa depan.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400"
     },
     "التَّسْجِيلُ": {
         "indo": "Pendaftaran / Registrasi",
         "ctl": "💡 CTL: Proses berkas pendaftaran (SNBP, SNBT, SPAN-PTKIN).",
         "ar_ex": "بَدَأَ التَّسْجِيلُ فِي الجَامِعَةِ هَذَا الشَّهْرَ.",
         "id_ex": "Pendaftaran di universitas telah dimulai bulan ini.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400"
     },
     "القِسْمُ": {
         "indo": "Jurusan / Program Studi",
         "ctl": "💡 CTL: Spesialisasi ilmu sesuai bakat dan minat.",
         "ar_ex": "اخْتَارَ زَيْدٌ قِسْمَ اللُّغَةِ العَرَبِيَّةِ.",
         "id_ex": "Zaid memilih jurusan Bahasa Arab.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400"
     },
     "الكُلِّيَّةُ": {
         "indo": "Fakultas",
         "ctl": "💡 CTL: Wadah jurusan sejenis (Tarbiyah, Kedokteran, Teknik).",
         "ar_ex": "تَقَعُ كُلِّيَّةُ الطِّبِّ فِي وَسَطِ الجَامِعَةِ.",
         "id_ex": "Fakultas Kedokteran terletak di pusat kampus.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="9" y1="6" x2="15" y2="6"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1562774053-701939374585?w=400"
     },
     "المَكْتَبَةُ": {
         "indo": "Perpustakaan",
         "ctl": "💡 CTL: Pusat referensi bacaan dan riset tugas mahasiswa.",
         "ar_ex": "يَقْرَأُ الطَّالِبُ الكُتُبَ فِي المَكْتَبَةِ.",
         "id_ex": "Mahasiswa membaca buku-buku di perpustakaan.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=400"
     },
     "الأُسْتَاذُ": {
         "indo": "Dosen / Pengajar",
         "ctl": "💡 CTL: Tenaga pengajar dan pembimbing riset kampus.",
         "ar_ex": "يَشْرَحُ الأُسْتَاذُ الدَّرْسَ بِوُضُوحٍ.",
         "id_ex": "Dosen menjelaskan pelajaran dengan jelas.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400"
     },
     "المُجْتَمَعُ": {
         "indo": "Masyarakat / Komunitas",
         "ctl": "💡 CTL: Muara pengabdian ilmu lulusan kampus.",
         "ar_ex": "نَحْنُ نَعْمَلُ لِخِدْمَةِ المُجْتَمَعِ.",
         "id_ex": "Kita bekerja untuk mengabdi kepada masyarakat.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=400"
     },
     "وَاصَلَ - يُوَاصِلُ": {
         "indo": "Melanjutkan",
         "ctl": "💡 CTL: Semangat siswa MA meneruskan studi tinggi.",
         "ar_ex": "يُوَاصِلُ العَالِمُ بَحْثَهُ العِلْمِيَّ.",
         "id_ex": "Peneliti itu melanjutkan penelitian ilmiahnya.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400"
     },
     "اِخْتَارَ - يَخْتَارُ": {
         "indo": "Memilih",
         "ctl": "💡 CTL: Kemandirian mengambil keputusan jurusan.",
         "ar_ex": "يَخْتَارُ الطَّالِبُ التَّخَصُّصَ المُنَاسِبَ.",
         "id_ex": "Mahasiswa memilih spesialisasi yang sesuai.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1455849318743-b2233052fcff?w=400"
     },
     "تَنَاسَبَ - يَتَنَاسَبُ": {
         "indo": "Sesuai / Cocok",
         "ctl": "💡 CTL: Menyelaraskan minat diri dengan prodi.",
         "ar_ex": "هَذَا التَّخَصُّصُ يَتَنَاسَبُ مَعَ مَهَارَاتِي.",
         "id_ex": "Jurusan ini cocok dengan keterampilan saya.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=400"
     },
     "اِلْتَحَقَ - يَلْتَحِقُ": {
         "indo": "Bergabung / Masuk PT",
         "ctl": "💡 CTL: Resmi terdaftar menjadi mahasiswa baru.",
         "ar_ex": "اِلْتَحَقَتْ عَائِشَةُ بِكُلِّيَّةِ التَّرْبِيَةِ.",
         "id_ex": "Aisyah masuk ke Fakultas Tarbiyah.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400"
     },
     "اِعْتَمَدَ - يَعْتَمِدُ": {
         "indo": "Berdikari / Mandiri",
         "ctl": "💡 CTL: Kemandirian pola belajar di Perguruan Tinggi.",
         "ar_ex": "يَعْتَمِدُ الطَّالِبُ عَلَى نَفْسِهِ فِي الدِّرَاسَةِ.",
         "id_ex": "Mahasiswa mengandalkan dirinya sendiri dalam belajar.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400"
     },
     "اِسْتَعَدَّ - يَسْتَعِدُّ": {
         "indo": "Bersiap-siap",
         "ctl": "💡 CTL: Persiapan berkas & mental kelas 12.",
         "ar_ex": "يَسْتَعِدُّ الفَرِيقُ لِلْمُسَابَقَةِ.",
         "id_ex": "Tim bersiap-siap untuk perlombaan.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400"
     },
     "أَفَادَ - يُفِيدُ": {
         "indo": "Memberi Manfaat",
         "ctl": "💡 CTL: Pengabdian ilmu untuk kemaslahatan masyarakat.",
         "ar_ex": "العِلْمُ النَّافِعُ يُفِيدُ النَّاسَ.",
         "id_ex": "Ilmu yang bermanfaat memberikan kegunaan bagi manusia.",
-        "svg": '<svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'
+        "img_url": "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=400"
     }
 }
 
-# Fungsi Helper untuk Membuat Kosa Kata Ber-Pop-up Lengkap
+# Fungsi Helper untuk Membuat Kosa Kata Ber-Pop-up Lengkap + Gambar Foto
 def v(arabic_word, db_key):
     info = vocab_db[db_key]
-    return f'''<span class="vocab">{arabic_word}<span class="tooltip-box"><div class="svg-container">{info['svg']}</div><b style="font-size:18px; color:#38bdf8;">{db_key}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span><br><div class="example-box"><b>📌 Contoh Kalimat:</b><br><span style="font-family:'Amiri'; font-size:16px;">{info['ar_ex']}</span><br><i style="color:#cbd5e1; font-size:12px;">"{info['id_ex']}"</i></div><div style="font-size:12px; margin-top:6px; color:#94a3b8;">{info['ctl']}</div></span></span>'''
+    return f'''<span class="vocab">{arabic_word}<span class="tooltip-box"><img src="{info['img_url']}" class="popup-img"><b style="font-size:18px; color:#38bdf8;">{db_key}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span><br><div class="example-box"><b>📌 Contoh Kalimat:</b><br><span style="font-family:'Amiri'; font-size:16px;">{info['ar_ex']}</span><br><i style="color:#cbd5e1; font-size:12px;">"{info['id_ex']}"</i></div><div style="font-size:12px; margin-top:6px; color:#94a3b8;">{info['ctl']}</div></span></span>'''
 
 # 4. Header Aplikasi
 st.markdown('<h1 class="main-title">🎓 Smart Qira\'ah Reader</h1>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">Media Pembelajaran Maharah Qira\'ah Kelas 12 MA — Tema: Ad-Dirasah fil Jamiah</p>', unsafe_allow_html=True)
-st.caption("👉 **Petunjuk Guru:** Sorot/Arahkan kursor pada kosa kata biru bergaris bawah untuk melihat Gambar Visual, Contoh Kalimat, & Makna CTL!")
+st.caption("👉 **Petunjuk Guru:** Sorot/Arahkan kursor pada kosa kata biru bergaris bawah untuk melihat Gambar Foto Asli, Contoh Kalimat, & Makna CTL!")
 
 # 5. Sidebar Bank Mufrodat (Navigasi Instan)
 st.sidebar.header("📌 Bank 17 Kosa Kata Wajib")
@@ -258,7 +259,7 @@ selected_word = st.sidebar.selectbox("Bedah Mufrodat via Sidebar:", list(vocab_d
 
 if selected_word:
     info = vocab_db[selected_word]
-    st.sidebar.markdown(f'<div style="text-align:center; background:#1e293b; padding:10px; border-radius:8px;">{info["svg"]}</div>', unsafe_allow_html=True)
+    st.sidebar.image(info["img_url"], use_container_width=True)
     st.sidebar.markdown(f"### {selected_word}")
     st.sidebar.markdown(f"**Arti:** {info['indo']}")
     st.sidebar.markdown(f"**📌 Contoh Kalimat:**\n- {info['ar_ex']}\n  *( “{info['id_ex']}” )*")
