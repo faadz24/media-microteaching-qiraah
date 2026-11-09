@@ -134,21 +134,21 @@ vocab_db = {
         "ctl": "💡 CTL: Transisi peran dari siswa MA menjadi mahasiswa mandiri.",
         "ar_ex": "الطُّلَّابُ يَسْتَعِدُّونَ لِلاِمْتِحَانِ النِّهَائِيِّ.",
         "id_ex": "Para siswa sedang bersiap menghadapi ujian akhir.",
-        "img_url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400"
+        "img_url": "https://sma-alazhar14.sch.id/wp-content/uploads/2025/12/JNF00896-1024x683.jpg"
     },
     "الجَامِعَةُ": {
         "indo": "Universitas / Perguruan Tinggi",
         "ctl": "💡 CTL: Lembaga tinggi tujuan lulusan MA (PTN, PTKIN).",
         "ar_ex": "يَرْغَبُ أَحْمَدُ فِي الدِّرَاسَةِ بِالجَامِعَةِ الحُكُومِيَّةِ.",
         "id_ex": "Ahmad ingin berkuliah di perguruan tinggi negeri.",
-        "img_url": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=400"
+        "img_url": "https://skuling.id/wp-content/uploads/2024/12/profil-universitas-jenderal-soedirman.png"
     },
     "المُسْتَقْبَلُ": {
         "indo": "Masa Depan",
         "ctl": "💡 CTL: Cita-cita karier yang dirancang siswa kelas 12.",
         "ar_ex": "التَّخْطِيطُ الجَيِّدُ مُهِمٌّ لِلْمُسْتَقْبَلِ.",
         "id_ex": "Perencanaan yang baik sangat penting untuk masa depan.",
-        "img_url": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400"
+        "img_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhAxIgFbLoTjzoN19ajOfXTe82cSyP4JzxQjd4VbDAfg&s=10"
     },
     "التَّسْجِيلُ": {
         "indo": "Pendaftaran / Registrasi",
@@ -162,7 +162,7 @@ vocab_db = {
         "ctl": "💡 CTL: Spesialisasi ilmu sesuai bakat dan minat.",
         "ar_ex": "اخْتَارَ زَيْدٌ قِسْمَ اللُّغَةِ العَرَبِيَّةِ.",
         "id_ex": "Zaid memilih jurusan Bahasa Arab.",
-        "img_url": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400"
+        "img_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQCrVYV3LldZtaTJm-88MU5cqSEydiXsQe-xZ4WKA74lPZfmt4hjLk3C4Y&s=10"
     },
     "الكُلِّيَّةُ": {
         "indo": "Fakultas",
