@@ -1,6 +1,6 @@
 import streamlit as st
 
-# 1. Konfigurasi Halaman (Harus di baris pertama setelah import)
+# 1. Konfigurasi Halaman
 st.set_page_config(
     page_title="Smart Qira'ah Reader: Ad-Dirasah fil Jamiah",
     page_icon="🎓",
@@ -23,8 +23,35 @@ st.markdown("""
         color: #475569;
         text-align: center;
         font-family: sans-serif;
-        margin-bottom: 25px;
+        margin-bottom: 15px;
     }
+    
+    /* BANNER WELCOME / OPENING APLIKASI */
+    .welcome-banner {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        color: #ffffff;
+        padding: 22px 28px;
+        border-radius: 16px;
+        box-shadow: 0 8px 16px rgba(30, 58, 138, 0.15);
+        margin-bottom: 25px;
+        border: 1px solid #60a5fa;
+    }
+    .welcome-arabic {
+        font-family: 'Amiri', serif;
+        font-size: 32px;
+        font-weight: bold;
+        direction: rtl;
+        text-align: right;
+        color: #fef08a;
+        margin-bottom: 8px;
+    }
+    .welcome-indo {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #f1f5f9;
+        text-align: justify;
+    }
+
     .arabic-title {
         font-family: 'Amiri', serif;
         font-size: 30px;
@@ -227,7 +254,7 @@ words_db = {
     "لِلْعَمَلِ": {"type": "regular", "indo": "Untuk bekerja", "gram": "Harf Jar + Masdar", "ar_ex": "يَسْتَعِدُّ الخِرِّيجُونَ لِلْعَمَلِ.", "id_ex": "Para lulusan bersiap untuk bekerja.", "img_url": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400"}
 }
 
-# Fungsi Builder Pop-Up Interaktif Ber-Gambar & Ber-Contoh Kalimat untuk SEMUA KATA
+# Fungsi Builder Pop-Up Interaktif
 def w(arabic_word, db_key=None):
     key = db_key if db_key else arabic_word
     info = words_db.get(key, {
@@ -244,29 +271,35 @@ def w(arabic_word, db_key=None):
     id_ex = info.get("id_ex", "Ini adalah kata di dalam teks.")
 
     if info["type"] == "target":
-        # Pop-Up Lengkap 17 Mufrodat Utama
         return f'''<span class="vocab-target">{arabic_word}<span class="tooltip-box"><img src="{img_url}" class="popup-img"><b style="font-size:17px; color:#38bdf8;">{key}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span><br><div class="example-box"><b>📌 Contoh Kalimat:</b><br><span style="font-family:'Amiri'; font-size:16px;">{ar_ex}</span><br><i style="color:#cbd5e1; font-size:11px;">"{id_ex}"</i></div><div style="font-size:11px; margin-top:5px; color:#94a3b8;">{info['ctl']}</div></span></span>'''
     else:
-        # Pop-Up Kata Pendukung
         gram_info = f'<br><small style="color:#94a3b8;">({info.get("gram", "")})</small>' if "gram" in info else ""
         return f'''<span class="vocab-regular">{arabic_word}<span class="tooltip-box"><img src="{img_url}" class="popup-img"><b style="font-size:16px; color:#38bdf8;">{arabic_word}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span>{gram_info}<br><div class="example-box"><b>📌 Contoh Kalimat:</b><br><span style="font-family:'Amiri'; font-size:15px;">{ar_ex}</span><br><i style="color:#cbd5e1; font-size:11px;">"{id_ex}"</i></div></span></span>'''
 
-# 4. Header Aplikasi
+# 4. Header Utama Aplikasi
 st.markdown('<h1 class="main-title">🎓 Smart Qira\'ah Reader</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">Media Pembelajaran Maharah Qira\'ah Kelas 12 MA — Tema: Ad-Dirasah fil Jamiah</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Media Pembelajaran Interaktif Maharah Qira\'ah Kelas 12 MA</p>', unsafe_allow_html=True)
 
-# 5. SAKELAR MODE FOKUS BACA (TOGGLE)
+# 5. BANNER WELCOME / OPENING APLIKASI (ARAB & INDONESIA)
+st.markdown("""
+<div class="welcome-banner">
+    <div class="welcome-arabic">أَهْلًا وَسَهْلًا وَمَرْحَبًا بِكُمْ فِي تَطْبِيقِ "Smart Qira'ah Reader"! ✨</div>
+    <div class="welcome-indo">
+        <b>Selamat datang di Smart Qira'ah Reader!</b> Aplikasi ini dirancang khusus untuk memandu pembelajaran Maharah Qira'ah dengan pendekatan <i>Contextual Teaching & Learning (CTL)</i> pada tema <b>"Ad-Dirasah fil Jamiah" (الدِّرَاسَةُ فِي الجَامِعَةِ)</b>.<br>
+        🎯 <i>Mari bedah teks bacaan, pelajari 17 mufrodat penting, dan persiapkan langkah mandiri menuju Perguruan Tinggi Impianmu!</i>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# 6. SAKELAR MODE FOKUS BACA (TOGGLE)
 focus_col1, focus_col2 = st.columns([1, 2])
 with focus_col1:
-    focus_mode = st.toggle("📖 Mode Fokus Baca (Teks Bersih)", value=False, help="Aktifkan ini saat siswa membaca di depan agar pop-up disembunyikan.")
+    focus_mode = st.toggle("📖 Mode Fokus Baca (Sembunyikan Pop-up)", value=False, help="Aktifkan ini saat siswa membaca di depan agar teks bersih dari pop-up.")
 
-# Jika Mode Fokus Aktif, Injeksi CSS untuk Sembunyikan Pop-up & Efek Sorot
 if focus_mode:
     st.markdown("""
     <style>
-        .tooltip-box {
-            display: none !important;
-        }
+        .tooltip-box { display: none !important; }
         .vocab-target, .vocab-regular {
             border-bottom: none !important;
             cursor: default !important;
@@ -274,16 +307,14 @@ if focus_mode:
             font-weight: normal !important;
             background-color: transparent !important;
         }
-        .vocab-target:hover, .vocab-regular:hover {
-            background-color: transparent !important;
-        }
+        .vocab-target:hover, .vocab-regular:hover { background-color: transparent !important; }
     </style>
     """, unsafe_allow_html=True)
-    st.info("💡 **Mode Fokus Baca Aktif:** Teks dalam kondisi bersih tanpa pop-up/garis bawah untuk kelancaran siswa membaca di depan proyektor.")
+    st.info("💡 **Mode Fokus Baca Aktif:** Teks dalam kondisi bersih tanpa garis bawah/pop-up untuk kelancaran siswa membaca di proyektor.")
 else:
-    st.caption("👉 **Petunjuk Guru:** Arahkan/Klik kata mana saja untuk melihat Gambar Visual, Arti, Contoh Kalimat, & CTL.")
+    st.caption("👉 **Petunjuk Guru:** Klik/Sorot kata mana saja pada teks untuk melihat Gambar Visual, Arti, Contoh Kalimat, & CTL.")
 
-# 6. Sidebar Bank Mufrodat Target
+# 7. Sidebar Bank Mufrodat Target
 target_keys = [k for k, v in words_db.items() if v.get("type") == "target"]
 st.sidebar.header("📌 Bank 17 Kosa Kata Wajib")
 selected_word = st.sidebar.selectbox("Bedah Mufrodat Utama via Sidebar:", target_keys)
@@ -296,7 +327,7 @@ if selected_word:
     st.sidebar.markdown(f"**📌 Contoh Kalimat:**\n- {info['ar_ex']}\n  *( “{info['id_ex']}” )*")
     st.sidebar.info(info['ctl'])
 
-# 7. Area Utama Teks Bacaan
+# 8. Area Utama Teks Bacaan
 col1, col2 = st.columns([2.2, 1])
 
 with col1:
