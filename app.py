@@ -102,7 +102,7 @@ words_db = {
     "المُنَاقَشَةِ": {"type": "regular", "indo": "Diskusi / Tanya Jawab", "gram": "Isim Masdar", "ar_ex": "جَرَتْ المُنَاقَشَةُ بِبَالِغِ الاِهْتِمَامِ.", "id_ex": "Diskusi berlangsung dengan penuh perhatian."},
     "الأَسَاتِذَةِ": {"type": "regular", "indo": "Para Dosen / Pengajar", "gram": "Isim Jamak dari Ustadz", "ar_ex": "يَحْتَرِمُ الطُّلَّابُ الأَسَاتِذَةَ.", "id_ex": "Para siswa menghormati para dosen."},
     "وَالأَصْدِقَاءِ": {"type": "regular", "indo": "Dan teman-teman", "gram": "Isim Jamak Taksir", "ar_ex": "يَتَكَلَّمُ الطَّالِبُ مَعَ الأَصْدِقَاءِ.", "id_ex": "Siswa berbicara bersama teman-teman."},
-    "وَيَسْتَخْدِمُونَ": {"type": "regular", "indo": "Dan mereka menggunakan", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَسْتَخْدِمُونَ الحَاسُوبَ فِي الدِّرَاسَةِ.", "id_ex": "Dan mereka menggunakan komputer dalam belajar."},
+    "وَيَسْتَخْدِمُونَ": {"type": "regular", "indo": "Dan meggunakan", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَسْتَخْدِمُونَ الحَاسُوبَ فِي الدِّرَاسَةِ.", "id_ex": "Dan mereka menggunakan komputer dalam belajar."},
     "طُرُقًا": {"type": "regular", "indo": "Metode-metode / Cara", "gram": "Isim Jamak", "ar_ex": "يَتَّبِعُ الأُسْتَاذُ طُرُقًا حَدِيثَةً.", "id_ex": "Dosen menerapkan metode-metode modern."},
     "حَدِيثَةً": {"type": "regular", "indo": "Modern / Terbaru", "gram": "Na'at / Kata Sifat", "ar_ex": "يَسْتَخْدِمُونَ وَسَائِلَ حَدِيثَةً.", "id_ex": "Mereka menggunakan media modern."},
     "التَّعَلُّمِ": {"type": "regular", "indo": "Pembelajaran / Studi", "gram": "Isim Masdar", "ar_ex": "التَّعَلُّمُ عَمَلِيَّةٌ مُسْتَمِرَّةٌ.", "id_ex": "Pembelajaran adalah proses yang berkelanjutan."},
@@ -329,7 +329,7 @@ elif st.session_state.page == "learning":
     with top_col3:
         font_size = st.slider("🔍 Ukuran Font Teks (px)", min_value=22, max_value=38, value=28, step=2)
 
-    # DYNAMIC CSS ENGINE UNTUK FONT SIZE & PILIHAN GANDA (FULL PEPET KANAN & FONT KONTRASTING)
+    # DYNAMIC CSS ENGINE UNTUK FONT SIZE & PILIHAN GANDA (FULL MENTOK KANAN RTL)
     st.markdown(f"""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
@@ -427,7 +427,7 @@ elif st.session_state.page == "learning":
             margin-bottom: 15px;
         }}
 
-        /* STYLING FONT & LAYOUT PILIHAN GANDA (FULL PEPET KANAN & KETEBALAN SENDIRI) */
+        /* STYLING FONT & LAYOUT PILIHAN GANDA (FULL MENTOK KANAN RTL) */
         div[data-testid="stRadio"] {{
             direction: rtl !important;
             text-align: right !important;
@@ -437,16 +437,23 @@ elif st.session_state.page == "learning":
             direction: rtl !important;
             display: flex !important;
             flex-direction: column !important;
-            align-items: flex-start !important;
+            align-items: flex-end !important; /* Memaksa opsi rata di tepi kanan */
             width: 100% !important;
+            margin-right: 0 !important;
+            padding-right: 0 !important;
         }}
         div[role="radiogroup"] label {{
             direction: rtl !important;
+            display: flex !important;
             flex-direction: row !important;
             justify-content: flex-start !important;
-            gap: 12px !important;
+            align-items: center !important;
             width: 100% !important;
-            margin-left: auto !important;
+            margin-right: 0 !important;
+            padding-right: 0 !important;
+        }}
+        div[role="radiogroup"] label > div:first-child {{
+            margin-left: 10px !important;
             margin-right: 0 !important;
         }}
         div[role="radiogroup"] label p {{
@@ -454,9 +461,10 @@ elif st.session_state.page == "learning":
             font-size: 28px !important;
             line-height: 2.0 !important;
             color: #0f172a !important;
-            font-weight: 400 !important; /* Ketebalan kalimat dibuat normal agar kontras dengan opsi أ. ب. */
+            font-weight: 400 !important;
             direction: rtl !important;
             text-align: right !important;
+            margin: 0 !important;
         }}
     </style>
     """, unsafe_allow_html=True)
@@ -646,7 +654,7 @@ elif st.session_state.page == "learning":
 
 
 # ==============================================================================
-# HALAMAN 3: EVALUASI KOREKSI LANGSUNG PER NOMOR (FULL PEPET KANAN RTL)
+# HALAMAN 3: EVALUASI KOREKSI LANGSUNG PER NOMOR (FULL MENTOK KANAN RTL)
 # ==============================================================================
 elif st.session_state.page == "evaluasi":
     
@@ -657,7 +665,7 @@ elif st.session_state.page == "evaluasi":
             st.session_state.page = "learning"
             st.rerun()
 
-    # CSS INJEKSI RATA KANAN PENUH & TEKS KONTRASTING
+    # CSS INJEKSI RATA KANAN PENUH (FLUSH RIGHT)
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
@@ -671,16 +679,23 @@ elif st.session_state.page == "evaluasi":
             direction: rtl !important;
             display: flex !important;
             flex-direction: column !important;
-            align-items: flex-start !important;
+            align-items: flex-end !important; /* Kunci rata kanan sejajar card */
             width: 100% !important;
+            margin-right: 0 !important;
+            padding-right: 0 !important;
         }
         div[role="radiogroup"] label {
             direction: rtl !important;
+            display: flex !important;
             flex-direction: row !important;
             justify-content: flex-start !important;
-            gap: 12px !important;
+            align-items: center !important;
             width: 100% !important;
-            margin-left: auto !important;
+            margin-right: 0 !important;
+            padding-right: 0 !important;
+        }
+        div[role="radiogroup"] label > div:first-child {
+            margin-left: 10px !important;
             margin-right: 0 !important;
         }
         div[role="radiogroup"] label p {
@@ -691,6 +706,7 @@ elif st.session_state.page == "evaluasi":
             font-weight: 400 !important;
             direction: rtl !important;
             text-align: right !important;
+            margin: 0 !important;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -718,7 +734,7 @@ elif st.session_state.page == "evaluasi":
 
     st.caption(f"📊 **Progres Pengerjaan Kelas:** Terjawab: **{to_ar_num(answered_count)} / ٢٠** | Jawaban Benar: **{to_ar_num(correct_count)}**")
 
-    # Loop Render Soal dengan Pertanyaan 30px & Pilihan Ganda RTL Kanan
+    # Loop Render Soal dengan Pertanyaan 30px & Pilihan Ganda RTL Mentok Kanan
     for item in quiz_data:
         q_num = item["id"]
         ar_q_num = to_ar_num(q_num)
