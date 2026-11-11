@@ -1,6 +1,7 @@
 import streamlit as st
 from gtts import gTTS
 import io
+import random
 
 # 1. Konfigurasi Halaman
 st.set_page_config(
@@ -9,213 +10,17 @@ st.set_page_config(
     layout="wide"
 )
 
-# 2. Manajemen Navigasi Halaman & State Evaluasi
+# 2. Manajemen Navigasi Halaman, State Evaluasi & Flashcard
 if "page" not in st.session_state:
     st.session_state.page = "opening"
 if "user_answers" not in st.session_state:
     st.session_state.user_answers = {}
+if "flash_idx" not in st.session_state:
+    st.session_state.flash_idx = 0
+if "card_flipped" not in st.session_state:
+    st.session_state.card_flipped = False
 
-# 3. Injeksi CSS Utama
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
-    
-    .main-title {
-        color: #1e3a8a;
-        text-align: center;
-        font-family: sans-serif;
-        font-weight: bold;
-        margin-bottom: 5px;
-    }
-    .sub-title {
-        color: #475569;
-        text-align: center;
-        font-family: sans-serif;
-        margin-bottom: 20px;
-    }
-    
-    /* STYLE HERO / BANNER OPENING */
-    .opening-card {
-        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%);
-        color: #ffffff;
-        padding: 35px 40px;
-        border-radius: 20px;
-        box-shadow: 0 10px 25px rgba(30, 58, 138, 0.25);
-        margin-bottom: 30px;
-        border: 2px solid #3b82f6;
-        text-align: center;
-    }
-    .opening-arabic {
-        font-family: 'Amiri', serif;
-        font-size: 38px;
-        font-weight: bold;
-        direction: rtl;
-        color: #fde047;
-        margin-bottom: 15px;
-        line-height: 1.5;
-    }
-    .opening-indo {
-        font-size: 18px;
-        line-height: 1.7;
-        color: #f1f5f9;
-        max-width: 850px;
-        margin: 0 auto;
-    }
-    
-    .feature-card {
-        background-color: #ffffff;
-        border-radius: 12px;
-        padding: 20px;
-        border-left: 5px solid #2563eb;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        margin-bottom: 15px;
-    }
-
-    /* STYLE BACAAN TEKS ARAB */
-    .arabic-title {
-        font-family: 'Amiri', serif;
-        font-size: 30px;
-        color: #1e3a8a;
-        direction: rtl;
-        text-align: right;
-        font-weight: bold;
-        margin-top: 20px;
-        border-bottom: 2px solid #e2e8f0;
-        padding-bottom: 5px;
-    }
-    .arabic-text {
-        font-family: 'Amiri', serif;
-        font-size: 28px;
-        line-height: 2.6;
-        direction: rtl;
-        text-align: right;
-        background-color: #ffffff;
-        padding: 25px;
-        border-radius: 12px;
-        border-right: 6px solid #1e3a8a;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        margin-bottom: 15px;
-    }
-    
-    /* GAYA KATA TARGET & PENDUKUNG */
-    .vocab-target {
-        color: #2563eb;
-        font-weight: bold;
-        border-bottom: 2px dashed #2563eb;
-        cursor: pointer;
-        position: relative;
-        display: inline-block;
-        padding: 0 4px;
-    }
-    .vocab-target:hover {
-        background-color: #fef08a;
-        border-radius: 4px;
-    }
-    
-    .vocab-regular {
-        color: #0f172a;
-        cursor: pointer;
-        position: relative;
-        display: inline-block;
-        padding: 0 3px;
-        border-bottom: 1px dotted #94a3b8;
-    }
-    .vocab-regular:hover {
-        background-color: #e2e8f0;
-        border-radius: 4px;
-        color: #1e3a8a;
-    }
-
-    /* TOOLTIP / POP-UP FLOATING BOX */
-    .tooltip-box {
-        visibility: hidden;
-        width: 310px;
-        background-color: #0f172a;
-        color: #ffffff;
-        text-align: right;
-        border-radius: 12px;
-        padding: 14px;
-        position: absolute;
-        z-index: 9999;
-        bottom: 125%;
-        left: 50%;
-        transform: translateX(-50%);
-        opacity: 0;
-        transition: opacity 0.3s ease, visibility 0.3s ease;
-        font-size: 14px;
-        line-height: 1.5;
-        font-family: sans-serif;
-        box-shadow: 0px 10px 25px rgba(0,0,0,0.4);
-        direction: rtl;
-        border: 1px solid #3b82f6;
-    }
-    .tooltip-box::after {
-        content: "";
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        margin-left: -7px;
-        border-width: 7px;
-        border-style: solid;
-        border-color: #0f172a transparent transparent transparent;
-    }
-    .vocab-target:hover .tooltip-box, .vocab-regular:hover .tooltip-box {
-        visibility: visible;
-        opacity: 1;
-    }
-    
-    .popup-img {
-        width: 100%;
-        height: 130px;
-        object-fit: cover;
-        border-radius: 8px;
-        margin-bottom: 8px;
-        border: 1px solid #334155;
-    }
-    .example-box {
-        background-color: #1e293b;
-        border-right: 3px solid #f59e0b;
-        padding: 6px 8px;
-        border-radius: 6px;
-        margin-top: 6px;
-        font-size: 13px;
-    }
-
-    /* EVALUASI SOAL STYLING & PENYESUAIAN FONT PILIHAN */
-    .question-card {
-        background-color: #ffffff;
-        border-radius: 12px;
-        padding: 20px 25px;
-        margin-top: 15px;
-        margin-bottom: 12px;
-        border-left: 6px solid #1e3a8a;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.04);
-    }
-    .question-arabic {
-        font-family: 'Amiri', serif;
-        font-size: 26px;
-        direction: rtl;
-        text-align: right;
-        color: #0f172a;
-        font-weight: bold;
-        margin-bottom: 10px;
-        line-height: 1.8;
-    }
-
-    /* MEMBESARKAN FONT PILIHAN JAWABAN RADIO BUTTON STREAMLIT */
-    div[role="radiogroup"] label p {
-        font-family: 'Amiri', serif, sans-serif !important;
-        font-size: 21px !important;
-        line-height: 1.8 !important;
-        color: #0f172a !important;
-        font-weight: 500 !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-DEFAULT_IMG = "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400"
-
-# 4. Database Seluruh Kata
+# 3. Database Seluruh Kata
 words_db = {
     # --- 17 TARGET MUFRODAT UTAMA (PAKAI GAMBAR + CTL) ---
     "المَدْرَسَةُ": {"type": "target", "indo": "Sekolah / Madrasah", "ctl": "💡 CTL: Jenjang MA sebelum ke Perguruan Tinggi.", "ar_ex": "يَتَعَلَّمُ الطُّلَّابُ فِي المَدْرَسَةِ الإِسْلَامِيَّةِ.", "id_ex": "Para siswa belajar di madrasah aliyah.", "img_url": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400"},
@@ -283,7 +88,7 @@ words_db = {
     "الدُّرُوسَ": {"type": "regular", "indo": "Pelajaran-pelajaran / Perkuliahan", "gram": "Isim Jamak Taksir", "ar_ex": "يَفْهَمُ الطَّالِبُ الدُّرُوسَ جَيِّدًا.", "id_ex": "Siswa paham pelajaran-pelajaran dengan baik."},
     "الفَصْلِ": {"type": "regular", "indo": "Ruang Kelas", "gram": "Isim Tempat", "ar_ex": "يَجْلِسُ الطُّلَّابُ فِي الفَصْلِ.", "id_ex": "Para siswa duduk di ruang kelas."},
     "مَعَ": {"type": "regular", "indo": "Bersama / Dengan", "gram": "Zaraf Makan", "ar_ex": "يَتَنَاقَشُ الطَّالِبُ مَعَ الأُسْتَاذِ.", "id_ex": "Siswa berdiskusi bersama dosen."},
-    "وَيَذْهَبُونَ": {"type": "regular", "indo": "Dan mereka pergi", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَذْهَبُونَ إِلَى المَكْتَبَةِ كُلَّ يَوْمٍ.", "id_ex": "Dan mereka pergi ke perpustakaan setiap hari."},
+    "وَيَذْهَبُونَ": {"type": "regular", "indo": "Dan meeka pergi", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَذْهَبُونَ إِلَى المَكْتَبَةِ كُلَّ يَوْمٍ.", "id_ex": "Dan mereka pergi ke perpustakaan setiap hari."},
     "لِلْقِرَاءَةِ": {"type": "regular", "indo": "Untuk membaca", "gram": "Harf Jar + Masdar", "ar_ex": "يَذْهَبُ إِلَى المَكْتَبَةِ لِلْقِرَاءَةِ.", "id_ex": "Ia pergi ke perpustakaan untuk membaca."},
     "وَالبَحْثِ": {"type": "regular", "indo": "Dan meriset / mencari data", "gram": "Isim Masdar", "ar_ex": "يَقُومُ الطُّلَّابُ بِالقِرَاءَةِ وَالبَحْثِ.", "id_ex": "Para siswa melakukan pembacaan dan penelitian."},
     "عَنِ": {"type": "regular", "indo": "Tentang / Dari", "gram": "Harf Jar", "ar_ex": "يَبْحَثُ الطَّالِبُ عَنِ المَعْلُومَاتِ.", "id_ex": "Siswa mencari informasi."},
@@ -303,7 +108,7 @@ words_db = {
     "لِلْعَمَلِ": {"type": "regular", "indo": "Untuk bekerja", "gram": "Harf Jar + Masdar", "ar_ex": "يَسْتَعِدُّ الخِرِّيجُونَ لِلْعَمَلِ.", "id_ex": "Para lulusan bersiap untuk bekerja."}
 }
 
-# 5. Database 20 Soal Pilihan Ganda & Kunci Jawaban
+# 4. Database 20 Soal Pilihan Ganda & Kunci Jawaban
 quiz_data = [
     {
         "id": 1,
@@ -427,6 +232,8 @@ quiz_data = [
     }
 ]
 
+DEFAULT_IMG = "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400"
+
 # Fungsi Builder Pop-Up Interaktif
 def w(arabic_word, db_key=None):
     key = db_key if db_key else arabic_word
@@ -453,14 +260,14 @@ def w(arabic_word, db_key=None):
 # HALAMAN 1: OPENING / WELCOME SCREEN
 # ==============================================================================
 if st.session_state.page == "opening":
-    st.markdown('<h1 class="main-title">🎓 Smart Qira\'ah Reader</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">Media Pembelajaran Maharah Qira\'ah Interaktif Berbasis CTL — Kelas 12 MA</p>', unsafe_allow_html=True)
+    st.markdown('<h1 style="color:#1e3a8a; text-align:center; font-weight:bold;">🎓 Smart Qira\'ah Reader</h1>', unsafe_allow_html=True)
+    st.markdown('<p style="color:#475569; text-align:center; margin-bottom:20px;">Media Pembelajaran Maharah Qira\'ah Interaktif Berbasis CTL — Kelas 12 MA</p>', unsafe_allow_html=True)
 
     # Hero Welcome Banner
     st.markdown("""
-    <div class="opening-card">
-        <div class="opening-arabic">أَهْلًا وَسَهْلًا وَمَرْحَبًا بِكُمْ فِي تَطْبِيقِ "Smart Qira'ah Reader"! ✨</div>
-        <div class="opening-indo">
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%); color: #ffffff; padding: 35px 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(30, 58, 138, 0.25); margin-bottom: 30px; border: 2px solid #3b82f6; text-align: center;">
+        <div style="font-family: 'Amiri', serif; font-size: 38px; font-weight: bold; direction: rtl; color: #fde047; margin-bottom: 15px; line-height: 1.5;">أَهْلًا وَسَهْلًا وَمَرْحَبًا بِكُمْ فِي تَطْبِيقِ "Smart Qira'ah Reader"! ✨</div>
+        <div style="font-size: 18px; line-height: 1.7; color: #f1f5f9; max-width: 850px; margin: 0 auto;">
             Media pembelajaran membaca bahasa Arab modern untuk membantu siswa kelas 12 MA memahami teks <b>"Ad-Dirasah fil Jamiah" (الدِّرَاسَةُ فِي الجَامِعَةِ)</b> secara kontekstual, visual, dan interaktif dalam rangka persiapan menuju Perguruan Tinggi Impian.
         </div>
     </div>
@@ -470,7 +277,7 @@ if st.session_state.page == "opening":
     col_f1, col_f2, col_f3 = st.columns(3)
     with col_f1:
         st.markdown("""
-        <div class="feature-card">
+        <div style="background-color: #ffffff; border-radius: 12px; padding: 20px; border-left: 5px solid #2563eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
             <h4>💡 Pendekatan CTL</h4>
             <p style="font-size:14px; color:#475569;">Menghubungkan teks bacaan perkuliahan dengan realitas pendaftaran PTN/PTKIN & kemandirian siswa.</p>
         </div>
@@ -478,17 +285,17 @@ if st.session_state.page == "opening":
 
     with col_f2:
         st.markdown("""
-        <div class="feature-card">
-            <h4>🖼️ Pop-up Visual Interaktif</h4>
-            <p style="font-size:14px; color:#475569;">Sorot kata mana saja untuk memunculkan gambar visual, arti, contoh kalimat, dan tata bahasa.</p>
+        <div style="background-color: #ffffff; border-radius: 12px; padding: 20px; border-left: 5px solid #2563eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <h4>🃏 Mini Game Flashcard</h4>
+            <p style="font-size:14px; color:#475569;">Kartu hafalan interaktif 17 kata kunci utama lengkap dengan gambar visual & audio suara.</p>
         </div>
         """, unsafe_allow_html=True)
 
     with col_f3:
         st.markdown("""
-        <div class="feature-card">
+        <div style="background-color: #ffffff; border-radius: 12px; padding: 20px; border-left: 5px solid #2563eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
             <h4>🔊 Audio Pelafalan & Evaluasi</h4>
-            <p style="font-size:14px; color:#475569;">Dilengkapi pemutar audio mufrodat di sidebar dan latihan 20 soal pilihan ganda interaktif.</p>
+            <p style="font-size:14px; color:#475569;">Pemutar audio mufrodat di sidebar dan latihan 20 soal pilihan ganda interaktif dengan koreksi langsung.</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -503,21 +310,124 @@ if st.session_state.page == "opening":
 
 
 # ==============================================================================
-# HALAMAN 2: MATERI PEMBELAJARAN & READER
+# HALAMAN 2: MATERI PEMBELAJARAN & READER (DENGAN SLIDER FONT & FLASHCARD)
 # ==============================================================================
 elif st.session_state.page == "learning":
     
-    # Navigation Top Bar (Hanya Tombol Kembali & Mode Fokus)
-    top_col1, top_col2 = st.columns([1.5, 2])
+    # 1. TOP NAV BAR (TAMBAHAN FITUR 3: SLIDER UKURAN FONT)
+    top_col1, top_col2, top_col3 = st.columns([1.2, 1.5, 1.3])
     with top_col1:
         if st.button("⬅️ Ke Halaman Utama"):
             st.session_state.page = "opening"
             st.rerun()
     with top_col2:
-        focus_mode = st.toggle("📖 Mode Fokus Baca (Sembunyikan Pop-up)", value=False)
+        focus_mode = st.toggle("📖 Mode Fokus Baca (Bersihkan Pop-up)", value=False)
+    with top_col3:
+        font_size = st.slider("🔍 Ukuran Font Teks (px)", min_value=22, max_value=38, value=28, step=2)
+
+    # DYNAMIC CSS ENGINE UNTUK FONT SIZE & STYLING TEKS
+    st.markdown(f"""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
+        
+        .arabic-title {{
+            font-family: 'Amiri', serif;
+            font-size: 28px;
+            color: #1e3a8a;
+            direction: rtl;
+            text-align: right;
+            font-weight: bold;
+            margin-top: 15px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+        }}
+        .arabic-text {{
+            font-family: 'Amiri', serif;
+            font-size: {font_size}px !important;
+            line-height: 2.6 !important;
+            direction: rtl;
+            text-align: right;
+            background-color: #ffffff;
+            padding: 22px;
+            border-radius: 12px;
+            border-right: 6px solid #1e3a8a;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+        }}
+        .vocab-target {{
+            color: #2563eb;
+            font-weight: bold;
+            border-bottom: 2px dashed #2563eb;
+            cursor: pointer;
+            position: relative;
+            display: inline-block;
+            padding: 0 4px;
+        }}
+        .vocab-target:hover {{ background-color: #fef08a; border-radius: 4px; }}
+        
+        .vocab-regular {{
+            color: #0f172a;
+            cursor: pointer;
+            position: relative;
+            display: inline-block;
+            padding: 0 3px;
+            border-bottom: 1px dotted #94a3b8;
+        }}
+        .vocab-regular:hover {{ background-color: #e2e8f0; border-radius: 4px; color: #1e3a8a; }}
+
+        .tooltip-box {{
+            visibility: hidden;
+            width: 310px;
+            background-color: #0f172a;
+            color: #ffffff;
+            text-align: right;
+            border-radius: 12px;
+            padding: 14px;
+            position: absolute;
+            z-index: 9999;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            font-size: 14px;
+            line-height: 1.5;
+            font-family: sans-serif;
+            box-shadow: 0px 10px 25px rgba(0,0,0,0.4);
+            direction: rtl;
+            border: 1px solid #3b82f6;
+        }}
+        .tooltip-box::after {{
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -7px;
+            border-width: 7px;
+            border-style: solid;
+            border-color: #0f172a transparent transparent transparent;
+        }}
+        .vocab-target:hover .tooltip-box, .vocab-regular:hover .tooltip-box {{ visibility: visible; opacity: 1; }}
+        
+        .popup-img {{ width: 100%; height: 130px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; border: 1px solid #334155; }}
+        .example-box {{ background-color: #1e293b; border-right: 3px solid #f59e0b; padding: 6px 8px; border-radius: 6px; margin-top: 6px; font-size: 13px; }}
+        
+        /* FLASHCARD GAMIFICATION STYLING */
+        .flashcard-box {{
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 3px solid #2563eb;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.15);
+            margin-bottom: 15px;
+        }}
+    </style>
+    """, unsafe_allow_html=True)
 
     st.markdown("---")
 
+    # MODUS FOKUS OVERRIDE
     if focus_mode:
         st.markdown("""
         <style>
@@ -532,87 +442,178 @@ elif st.session_state.page == "learning":
             .vocab-target:hover, .vocab-regular:hover { background-color: transparent !important; }
         </style>
         """, unsafe_allow_html=True)
-        st.info("💡 **Mode Fokus Baca Aktif:** Teks dalam kondisi bersih tanpa garis bawah/pop-up untuk kelancaran siswa membaca di proyektor.")
-    else:
-        st.caption("👉 **Petunjuk Guru:** Klik/Sorot kata mana saja pada teks untuk melihat Gambar Visual, Arti, Contoh Kalimat, & CTL.")
+        st.info("💡 **Mode Fokus Baca Aktif:** Pop-up dinonaktifkan agar teks tampil bersih untuk dibaca di depan proyektor.")
 
-    # SIDEBAR BANK MUFRODAT TARGET + FITUR AUDIO GTTS
-    target_keys = [k for k, v in words_db.items() if v.get("type") == "target"]
-    st.sidebar.header("📌 Bank 17 Kosa Kata Wajib")
-    selected_word = st.sidebar.selectbox("Bedah Mufrodat Utama via Sidebar:", target_keys)
+    # TAB UTAMA: TAB BACAAN & TAB MINI-GAME FLASHCARD (FITUR 4)
+    tab_read, tab_flashcard = st.tabs(["📖 Teks Bacaan & Diskusi CTL", "🃏 Mini Game Flashcard (17 Mufrodat Wajib)"])
 
-    if selected_word:
-        info = words_db[selected_word]
-        st.sidebar.image(info["img_url"], use_container_width=True)
-        st.sidebar.markdown(f"### {selected_word}")
+    # --------------------------------------------------------------------------
+    # TAB 1: TEKS BACAAN & DISKUSI CTL
+    # --------------------------------------------------------------------------
+    with tab_read:
+        # SIDEBAR BANK MUFRODAT TARGET + AUDIO gTTS
+        target_keys = [k for k, v in words_db.items() if v.get("type") == "target"]
+        st.sidebar.header("📌 Bank 17 Kosa Kata Wajib")
+        selected_word = st.sidebar.selectbox("Bedah Mufrodat Utama via Sidebar:", target_keys)
+
+        if selected_word:
+            info = words_db[selected_word]
+            st.sidebar.image(info["img_url"], use_container_width=True)
+            st.sidebar.markdown(f"### {selected_word}")
+            
+            st.sidebar.markdown("🔊 **Pelafalan Audio (الاستماع):**")
+            try:
+                tts = gTTS(text=selected_word, lang='ar')
+                fp = io.BytesIO()
+                tts.write_to_fp(fp)
+                fp.seek(0)
+                st.sidebar.audio(fp, format='audio/mp3')
+            except Exception:
+                st.sidebar.warning("⚠️ Suara tidak dapat diputar saat offline.")
+            
+            st.sidebar.markdown(f"**Arti:** {info['indo']}")
+            st.sidebar.markdown(f"**📌 Contoh Kalimat:**\n- {info['ar_ex']}\n  *( “{info['id_ex']}” )*")
+            st.sidebar.info(info['ctl'])
+
+        # Area Utama Teks Bacaan & Panel Diskusi
+        col1, col2 = st.columns([2.2, 1])
+
+        with col1:
+            st.subheader("📖 Teks Bacaan (المَادَّةُ)")
+            
+            # Paragraf 1
+            st.markdown('<div class="arabic-title">الفقرة الأولى: الدِّرَاسَةُ فِي الجَامِعَةِ</div>', unsafe_allow_html=True)
+            p1_html = f"""
+            {w("بَعْدَ")} {w("التَّخَرُّجِ")} {w("مِنَ")} {w("المَدْرَسَةِ", "المَدْرَسَةُ")} {w("الثَّانَوِيَّةِ")} {w("الإِسْلَامِيَّةِ")}، {w("يُرِيدُ")} {w("كَثِيرٌ")} {w("مِنَ")} {w("الطُّلَّابِ", "الطُّلَّابُ")} {w("أَنْ")} {w("يَدْرُسُوا")} {w("فِي")} {w("الجَامِعَةِ", "الجَامِعَةُ")}. {w("يَذْهَبُ")} {w("الطُّلَّابُ", "الطُّلَّابُ")} {w("إِلَى")} {w("الجَامِعَةِ", "الجَامِعَةُ")} {w("لِلتَّسْجِيلِ", "التَّسْجِيلُ")} {w("وَتَقْدِيمِ")} {w("الأَوْرَاقِ")}. {w("فِي")} {w("الجَامِعَةِ", "الجَامِعَةُ")}، {w("يَتَعَلَّمُ")} {w("الطُّلَّابُ", "الطُّلَّابُ")} {w("أَشْيَاءَ")} {w("جَدِيدَةً")} {w("وَيَسْتَعِدُّونَ", "اِسْتَعَدَّ - يَسْتَعِدُّ")} {w("لِلْمُسْتَقْبَلِ", "المُسْتَقْبَلُ")}. {w("كَمَا")} {w("يَتَعَلَّمُونَ")} {w("أَنْ")} {w("يَعْتَمِدُوا", "اِعْتَمَدَ - يَعْتَمِدُ")} {w("عَلَى")} {w("أَنْفُسِهِمْ")}.
+            """
+            st.markdown(f'<div class="arabic-text">{p1_html}</div>', unsafe_allow_html=True)
+
+            # Paragraf 2
+            st.markdown('<div class="arabic-title">الفقرة الثانية: اخْتِيَارُ القِسْمِ وَالكُلِّيَّةِ</div>', unsafe_allow_html=True)
+            p2_html = f"""
+            {w("يَخْتَارُ", "اِخْتَارَ - يَخْتَارُ")} {w("كُلُّ")} {w("طَالِبٍ")} {w("القِسْمَ", "القِسْمُ")} {w("الَّذِي")} {w("يُحِبُّهُ")} {w("وَيُنَاسِبُهُ", "تَنَاسَبَ - يَتَنَاسَبُ")}. {w("مَنْ")} {w("يُحِبُّ")} {w("الطِّبَّ")} {w("يَدْرُسُ")} {w("فِي")} {w("كُلِّيَّةِ", "الكُلِّيَّةُ")} {w("الطِّبِّ")}، {w("وَمَنْ")} {w("يُحِبُّ")} {w("الهَنْدَسَةَ")} {w("يَدْرُسُ")} {w("فِي")} {w("كُلِّيَّةِ", "الكُلِّيَّةُ")} {w("الهَنْدَسَةِ")}. {w("وَهُنَاكَ")} {w("أَيْضًا")} {w("كُلِّيَّةُ", "الكُلِّيَّةُ")} {w("التَّرْبِيَةِ")} {w("وَكُلِّيَّةُ", "الكُلِّيَّةُ")} {w("الشَّرِيعَةِ")}. {w("يَخْتَارُ", "اِخْتَارَ - يَخْتَارُ")} {w("الطُّلَّابُ", "الطُّلَّابُ")} {w("هَذِهِ")} {w("الكُلِّيَّاتِ", "الكُلِّيَّةُ")} {w("لِأَنَّهُمْ")} {w("يُرِيدُونَ")} {w("أَنْ")} {w("يَتَعَلَّمُوا")} {w("وَيُفِيدُوا", "أَفَادَ - يُفِيدُ")} {w("المُجْتَمَعَ", "المُجْتَمَعُ")}.
+            """
+            st.markdown(f'<div class="arabic-text">{p2_html}</div>', unsafe_allow_html=True)
+
+            # Paragraf 3
+            st.markdown('<div class="arabic-title">الفقرة الثالثة: الحَيَاةُ الجَامِعِيَّةُ وَالدِّرَاسَةُ</div>', unsafe_allow_html=True)
+            p3_html = f"""
+            {w("فِي")} {w("الجَامِعَةِ", "الجَامِعَةُ")}، {w("يَحْضُرُ")} {w("الطُّلَّابُ", "الطُّلَّابُ")} {w("الدُّرُوسَ")} {w("فِي")} {w("الفَصْلِ")} {w("مَعَ")} {w("الأُسْتَاذِ", "الأُسْتَاذُ")}. {w("وَيَذْهَبُونَ")} {w("إِلَى")} {w("المَكْتَبَةِ", "المَكْتَبَةُ")} {w("لِلْقِرَاءَةِ")} {w("وَالبَحْثِ")} {w("عَنِ")} {w("المَعْلُومَاتِ")}. {w("كَمَا")} {w("يَتَعَلَّمُونَ")} {w("مِنْ")} {w("خِلَالِ")} {w("المُنَاقَشَةِ")} {w("مَعَ")} {w("الأَسَاتِذَةِ", "الأُسْتَاذُ")} {w("وَالأَصْدِقَاءِ")}. {w("وَيَسْتَخْدِمُونَ")} {w("طُرُقًا")} {w("حَدِيثَةً")} {w("فِي")} {w("التَّعَلُّمِ")} {w("لِكَيْ")} {w("يَكُونُوا")} {w("مُسْتَعِدِّينَ", "اِسْتَعَدَّ - يَسْتَعِدُّ")} {w("لِلْعَمَلِ")} {w("فِي")} {w("المُسْتَقْبَلِ", "المُسْتَقْبَلُ")}.
+            """
+            st.markdown(f'<div class="arabic-text">{p3_html}</div>', unsafe_allow_html=True)
+
+        with col2:
+            st.subheader("💡 Diskusi Kontekstual (CTL)")
+            st.write("Panduan pertanyaan guru saat membimbing bacaan:")
+            
+            with st.expander("❓ Diskusi Paragraf 1"):
+                st.write("• Mengapa lulusan MA harus mulai belajar mandiri (*يَعْتَمِدُوا عَلَى أَنْفُسِهِمْ*) saat di kampus?")
+                st.write("• Jalur pendaftaran (*التَّسْجِيلُ*) apa saja yang kalian ketahui untuk masuk PTN/PTKIN?")
+
+            with st.expander("❓ Diskusi Paragraf 2"):
+                st.write("• Bagaimana cara kalian memilih jurusan (*القِسْمُ*) yang sesuai (*يُنَاسِبُهُ*) dengan bakat?")
+                st.write("• Apa perbedaan peran Fakultas Kedokteran, Teknik, Tarbiyah, dan Syariah?")
+
+            with st.expander("❓ Diskusi Paragraf 3"):
+                st.write("• Apa perbedaan cara belajar di kelas MA dengan di perpustakaan (*المَكْتَبَةُ*) kampus?")
+                st.write("• Mengapa diskusi bersama dosen (*الأُسْتَاذُ*) sangat penting di perguruan tinggi?")
+
+        # TOMBOL EVALUASI DI PALING BAWAH HALAMAN BACAAN
+        st.markdown("---")
+        st.markdown("<h4 style='text-align: center; color: #1e3a8a;'>Sudah Selesai Membaca & Berdiskusi?</h4>", unsafe_allow_html=True)
         
-        # PEMUTAR AUDIO BEBAS BLOKIR VIA gTTS
-        st.sidebar.markdown("🔊 **Pelafalan Audio (الاستماع):**")
-        try:
-            tts = gTTS(text=selected_word, lang='ar')
-            fp = io.BytesIO()
-            tts.write_to_fp(fp)
-            fp.seek(0)
-            st.sidebar.audio(fp, format='audio/mp3')
-        except Exception:
-            st.sidebar.warning("⚠️ Suara tidak dapat diputar saat offline.")
+        col_eval_btn1, col_eval_btn2, col_eval_btn3 = st.columns([1, 2, 1])
+        with col_eval_btn2:
+            if st.button("📝 LANJUT KE EVALUASI SOAL (الاِخْتِبَارُ)", type="primary", use_container_width=True):
+                st.session_state.page = "evaluasi"
+                st.rerun()
+
+    # --------------------------------------------------------------------------
+    # TAB 2: FITUR 4 - MINI GAME FLASHCARD MUFRODAT (KARTU HAFALAN INTERAKTIF)
+    # --------------------------------------------------------------------------
+    with tab_flashcard:
+        target_words = [k for k, v in words_db.items() if v.get("type") == "target"]
+        total_cards = len(target_words)
         
-        st.sidebar.markdown(f"**Arti:** {info['indo']}")
-        st.sidebar.markdown(f"**📌 Contoh Kalimat:**\n- {info['ar_ex']}\n  *( “{info['id_ex']}” )*")
-        st.sidebar.info(info['ctl'])
+        # Pastikan index aman
+        curr_idx = st.session_state.flash_idx % total_cards
+        curr_word = target_words[curr_idx]
+        word_info = words_db[curr_word]
 
-    # Area Utama Teks Bacaan & Panel Diskusi
-    col1, col2 = st.columns([2.2, 1])
+        st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h3 style="color:#1e3a8a; font-family:'Amiri', serif; font-size:30px;">🃏 Flashcard Hafalan Mufrodat Target</h3>
+            <p style="color:#64748b;">Uji hafalanmu secara mandiri sebelum melangkah ke Evaluasi Soal!</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-    with col1:
-        st.subheader("📖 Teks Bacaan (المَادَّةُ)")
+        # NAVIGASI BUTTON KARTU
+        c_prev, c_flip, c_next, c_rand = st.columns([1, 1.8, 1, 1])
         
-        # Paragraf 1
-        st.markdown('<div class="arabic-title">الفقرة الأولى: الدِّرَاسَةُ فِي الجَامِعَةِ</div>', unsafe_allow_html=True)
-        p1_html = f"""
-        {w("بَعْدَ")} {w("التَّخَرُّجِ")} {w("مِنَ")} {w("المَدْرَسَةِ", "المَدْرَسَةُ")} {w("الثَّانَوِيَّةِ")} {w("الإِسْلَامِيَّةِ")}، {w("يُرِيدُ")} {w("كَثِيرٌ")} {w("مِنَ")} {w("الطُّلَّابِ", "الطُّلَّابُ")} {w("أَنْ")} {w("يَدْرُسُوا")} {w("فِي")} {w("الجَامِعَةِ", "الجَامِعَةُ")}. {w("يَذْهَبُ")} {w("الطُّلَّابُ", "الطُّلَّابُ")} {w("إِلَى")} {w("الجَامِعَةِ", "الجَامِعَةُ")} {w("لِلتَّسْجِيلِ", "التَّسْجِيلُ")} {w("وَتَقْدِيمِ")} {w("الأَوْرَاقِ")}. {w("فِي")} {w("الجَامِعَةِ", "الجَامِعَةُ")}، {w("يَتَعَلَّمُ")} {w("الطُّلَّابُ", "الطُّلَّابُ")} {w("أَشْيَاءَ")} {w("جَدِيدَةً")} {w("وَيَسْتَعِدُّونَ", "اِسْتَعَدَّ - يَسْتَعِدُّ")} {w("لِلْمُسْتَقْبَلِ", "المُسْتَقْبَلُ")}. {w("كَمَا")} {w("يَتَعَلَّمُونَ")} {w("أَنْ")} {w("يَعْتَمِدُوا", "اِعْتَمَدَ - يَعْتَمِدُ")} {w("عَلَى")} {w("أَنْفُسِهِمْ")}.
-        """
-        st.markdown(f'<div class="arabic-text">{p1_html}</div>', unsafe_allow_html=True)
+        with c_prev:
+            if st.button("⬅️ Kartu Sebelum", use_container_width=True):
+                st.session_state.flash_idx = (st.session_state.flash_idx - 1) % total_cards
+                st.session_state.card_flipped = False
+                st.rerun()
 
-        # Paragraf 2
-        st.markdown('<div class="arabic-title">الفقرة الثانية: اخْتِيَارُ القِسْمِ وَالكُلِّيَّةِ</div>', unsafe_allow_html=True)
-        p2_html = f"""
-        {w("يَخْتَارُ", "اِخْتَارَ - يَخْتَارُ")} {w("كُلُّ")} {w("طَالِبٍ")} {w("القِسْمَ", "القِسْمُ")} {w("الَّذِي")} {w("يُحِبُّهُ")} {w("وَيُنَاسِبُهُ", "تَنَاسَبَ - يَتَنَاسَبُ")}. {w("مَنْ")} {w("يُحِبُّ")} {w("الطِّبَّ")} {w("يَدْرُسُ")} {w("فِي")} {w("كُلِّيَّةِ", "الكُلِّيَّةُ")} {w("الطِّبِّ")}، {w("وَمَنْ")} {w("يُحِبُّ")} {w("الهَنْدَسَةَ")} {w("يَدْرُسُ")} {w("فِي")} {w("كُلِّيَّةِ", "الكُلِّيَّةُ")} {w("الهَنْدَسَةِ")}. {w("وَهُنَاكَ")} {w("أَيْضًا")} {w("كُلِّيَّةُ", "الكُلِّيَّةُ")} {w("التَّرْبِيَةِ")} {w("وَكُلِّيَّةُ", "الكُلِّيَّةُ")} {w("الشَّرِيعَةِ")}. {w("يَخْتَارُ", "اِخْتَارَ - يَخْتَارُ")} {w("الطُّلَّابُ", "الطُّلَّابُ")} {w("هَذِهِ")} {w("الكُلِّيَّاتِ", "الكُلِّيَّةُ")} {w("لِأَنَّهُمْ")} {w("يُرِيدُونَ")} {w("أَنْ")} {w("يَتَعَلَّمُوا")} {w("وَيُفِيدُوا", "أَفَادَ - يُفِيدُ")} {w("المُجْتَمَعَ", "المُجْتَمَعُ")}.
-        """
-        st.markdown(f'<div class="arabic-text">{p2_html}</div>', unsafe_allow_html=True)
+        with c_flip:
+            flip_text = "👁️ Buka Arti & Gambar" if not st.session_state.card_flipped else "🔄 Sembunyikan Detail"
+            if st.button(f"**{flip_text}**", type="primary", use_container_width=True):
+                st.session_state.card_flipped = not st.session_state.card_flipped
+                st.rerun()
 
-        # Paragraf 3
-        st.markdown('<div class="arabic-title">الفقرة الثالثة: الحَيَاةُ الجَامِعِيَّةُ وَالدِّرَاسَةُ</div>', unsafe_allow_html=True)
-        p3_html = f"""
-        {w("فِي")} {w("الجَامِعَةِ", "الجَامِعَةُ")}، {w("يَحْضُرُ")} {w("الطُّلَّابُ", "الطُّلَّابُ")} {w("الدُّرُوسَ")} {w("فِي")} {w("الفَصْلِ")} {w("مَعَ")} {w("الأُسْتَاذِ", "الأُسْتَاذُ")}. {w("وَيَذْهَبُونَ")} {w("إِلَى")} {w("المَكْتَبَةِ", "المَكْتَبَةُ")} {w("لِلْقِرَاءَةِ")} {w("وَالبَحْثِ")} {w("عَنِ")} {w("المَعْلُومَاتِ")}. {w("كَمَا")} {w("يَتَعَلَّمُونَ")} {w("مِنْ")} {w("خِلَالِ")} {w("المُنَاقَشَةِ")} {w("مَعَ")} {w("الأَسَاتِذَةِ", "الأُسْتَاذُ")} {w("وَالأَصْدِقَاءِ")}. {w("وَيَسْتَخْدِمُونَ")} {w("طُرُقًا")} {w("حَدِيثَةً")} {w("فِي")} {w("التَّعَلُّمِ")} {w("لِكَيْ")} {w("يَكُونُوا")} {w("مُسْتَعِدِّينَ", "اِسْتَعَدَّ - يَسْتَعِدُّ")} {w("لِلْعَمَلِ")} {w("فِي")} {w("المُسْتَقْبَلِ", "المُسْتَقْبَلُ")}.
-        """
-        st.markdown(f'<div class="arabic-text">{p3_html}</div>', unsafe_allow_html=True)
+        with c_next:
+            if st.button("Kartu Lanjut ➡️", use_container_width=True):
+                st.session_state.flash_idx = (st.session_state.flash_idx + 1) % total_cards
+                st.session_state.card_flipped = False
+                st.rerun()
 
-    with col2:
-        st.subheader("💡 Diskusi Kontekstual (CTL)")
-        st.write("Panduan pertanyaan guru saat membimbing bacaan:")
-        
-        with st.expander("❓ Diskusi Paragraf 1"):
-            st.write("• Mengapa lulusan MA harus mulai belajar mandiri (*يَعْتَمِدُوا عَلَى أَنْفُسِهِمْ*) saat di kampus?")
-            st.write("• Jalur pendaftaran (*التَّسْجِيلُ*) apa saja yang kalian ketahui untuk masuk PTN/PTKIN?")
+        with c_rand:
+            if st.button("🔀 Acak Kartu", use_container_width=True):
+                st.session_state.flash_idx = random.randint(0, total_cards - 1)
+                st.session_state.card_flipped = False
+                st.rerun()
 
-        with st.expander("❓ Diskusi Paragraf 2"):
-            st.write("• Bagaimana cara kalian memilih jurusan (*القِسْمُ*) yang sesuai (*يُنَاسِبُهُ*) dengan bakat?")
-            st.write("• Apa perbedaan peran Fakultas Kedokteran, Teknik, Tarbiyah, dan Syariah?")
+        st.markdown("<br>", unsafe_allow_html=True)
 
-        with st.expander("❓ Diskusi Paragraf 3"):
-            st.write("• Apa perbedaan cara belajar di kelas MA dengan di perpustakaan (*المَكْتَبَةُ*) kampus?")
-            st.write("• Mengapa diskusi bersama dosen (*الأُسْتَاذُ*) sangat penting di perguruan tinggi?")
+        # TAMPILAN KARTU FLASHCARD INTERAKTIF
+        st.markdown(f"<div style='text-align:center; font-weight:bold; color:#2563eb;'>Kartu {curr_idx + 1} dari {total_cards}</div>", unsafe_allow_html=True)
 
-    # TOMBOL EVALUASI DIPINDAH KE PALING BAWAH HALAMAN BACAAN
-    st.markdown("---")
-    st.markdown("<h4 style='text-align: center; color: #1e3a8a;'>Sudah Selesai Membaca & Berdiskusi?</h4>", unsafe_allow_html=True)
-    
-    col_eval_btn1, col_eval_btn2, col_eval_btn3 = st.columns([1, 2, 1])
-    with col_eval_btn2:
-        if st.button("📝 LANJUT KE EVALUASI SOAL (الاِخْتِبَارُ)", type="primary", use_container_width=True):
-            st.session_state.page = "evaluasi"
-            st.rerun()
+        col_fc1, col_fc2, col_fc3 = st.columns([1, 2.5, 1])
+        with col_fc2:
+            if not st.session_state.card_flipped:
+                # DEPAN KARTU: KATA ARAB & AUDIO
+                st.markdown(f"""
+                <div class="flashcard-box">
+                    <div style="font-size: 14px; color: #94a3b8; margin-bottom: 10px;">- SISI DEPAN KARTU -</div>
+                    <div style="font-family: 'Amiri', serif; font-size: 48px; color: #1e3a8a; font-weight: bold; margin: 25px 0;">{curr_word}</div>
+                    <div style="color: #64748b; font-size: 14px;">Klik tombol <b>"👁️ Buka Arti & Gambar"</b> di atas untuk melihat penjelasannya!</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Pemutar Audio di Sisi Depan Kartu
+                try:
+                    tts = gTTS(text=curr_word, lang='ar')
+                    fp = io.BytesIO()
+                    tts.write_to_fp(fp)
+                    fp.seek(0)
+                    st.audio(fp, format='audio/mp3')
+                except Exception:
+                    pass
+            else:
+                # BELAKANG KARTU: ARTI, GAMBAR VISUAL, CONTOH & CTL
+                st.markdown(f"""
+                <div class="flashcard-box" style="background: #f0f9ff; border-color: #0284c7;">
+                    <div style="font-size: 14px; color: #0284c7; font-weight:bold; margin-bottom: 5px;">- SISI BELAKANG KARTU -</div>
+                    <div style="font-family: 'Amiri', serif; font-size: 38px; color: #1e3a8a; font-weight: bold;">{curr_word}</div>
+                    <h2 style="color: #d97706; margin-top: 5px; font-size: 26px;">{word_info['indo']}</h2>
+                    <hr style="border: 0.5px solid #cbd5e1; margin: 15px 0;">
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.image(word_info["img_url"], use_container_width=True)
+                st.info(f"**📌 Contoh Kalimat:**\n\n{word_info['ar_ex']}\n\n*( “{word_info['id_ex']}” )*")
+                st.success(word_info['ctl'])
 
 
 # ==============================================================================
@@ -658,9 +659,9 @@ elif st.session_state.page == "evaluasi":
         key_ans = item["key"]
         
         st.markdown(f"""
-        <div class="question-card">
+        <div style="background-color: #ffffff; border-radius: 12px; padding: 20px 25px; margin-top: 15px; margin-bottom: 12px; border-left: 6px solid #1e3a8a; box-shadow: 0 4px 6px rgba(0,0,0,0.04);">
             <div style="color: #2563eb; font-weight: bold; font-size: 14px; margin-bottom: 5px;">Soal Nomor {q_num} dari 20</div>
-            <div class="question-arabic">{q_num}. {q_text}</div>
+            <div style="font-family: 'Amiri', serif; font-size: 26px; direction: rtl; text-align: right; color: #0f172a; font-weight: bold; margin-bottom: 10px; line-height: 1.8;">{q_num}. {q_text}</div>
         </div>
         """, unsafe_allow_html=True)
         
@@ -681,7 +682,7 @@ elif st.session_state.page == "evaluasi":
             label_visibility="collapsed"
         )
 
-        # Koreksi Langsung & Apresiasi Emoticon Per Nomor (Indensasi & Syntax Sudah Diperbaiki)
+        # Koreksi Langsung & Apresiasi Emoticon Per Nomor
         if choice:
             user_choice_key = choice.split(".")[0]
             st.session_state.user_answers[q_num] = user_choice_key
