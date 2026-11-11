@@ -102,7 +102,7 @@ words_db = {
     "المُنَاقَشَةِ": {"type": "regular", "indo": "Diskusi / Tanya Jawab", "gram": "Isim Masdar", "ar_ex": "جَرَتْ المُنَاقَشَةُ بِبَالِغِ الاِهْتِمَامِ.", "id_ex": "Diskusi berlangsung dengan penuh perhatian."},
     "الأَسَاتِذَةِ": {"type": "regular", "indo": "Para Dosen / Pengajar", "gram": "Isim Jamak dari Ustadz", "ar_ex": "يَحْتَرِمُ الطُّلَّابُ الأَسَاتِذَةَ.", "id_ex": "Para siswa menghormati para dosen."},
     "وَالأَصْدِقَاءِ": {"type": "regular", "indo": "Dan teman-teman", "gram": "Isim Jamak Taksir", "ar_ex": "يَتَكَلَّمُ الطَّالِبُ مَعَ الأَصْدِقَاءِ.", "id_ex": "Siswa berbicara bersama teman-teman."},
-    "وَيَسْتَخْدِمُونَ": {"type": "regular", "indo": "Dan meggunakan", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَسْتَخْدِمُونَ الحَاسُوبَ فِي الدِّرَاسَةِ.", "id_ex": "Dan mereka menggunakan komputer dalam belajar."},
+    "وَيَسْتَخْدِمُونَ": {"type": "regular", "indo": "Dan mereka menggunakan", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَسْتَخْدِمُونَ الحَاسُوبَ فِي الدِّرَاسَةِ.", "id_ex": "Dan mereka menggunakan komputer dalam belajar."},
     "طُرُقًا": {"type": "regular", "indo": "Metode-metode / Cara", "gram": "Isim Jamak", "ar_ex": "يَتَّبِعُ الأُسْتَاذُ طُرُقًا حَدِيثَةً.", "id_ex": "Dosen menerapkan metode-metode modern."},
     "حَدِيثَةً": {"type": "regular", "indo": "Modern / Terbaru", "gram": "Na'at / Kata Sifat", "ar_ex": "يَسْتَخْدِمُونَ وَسَائِلَ حَدِيثَةً.", "id_ex": "Mereka menggunakan media modern."},
     "التَّعَلُّمِ": {"type": "regular", "indo": "Pembelajaran / Studi", "gram": "Isim Masdar", "ar_ex": "التَّعَلُّمُ عَمَلِيَّةٌ مُسْتَمِرَّةٌ.", "id_ex": "Pembelajaran adalah proses yang berkelanjutan."},
@@ -329,7 +329,7 @@ elif st.session_state.page == "learning":
     with top_col3:
         font_size = st.slider("🔍 Ukuran Font Teks (px)", min_value=22, max_value=38, value=28, step=2)
 
-    # DYNAMIC CSS ENGINE UNTUK FONT SIZE & PILIHAN GANDA (FULL MENTOK KANAN RTL)
+    # DYNAMIC CSS ENGINE UNTUK FONT SIZE & PILIHAN GANDA (FULL RTL FLEX-START KANAN)
     st.markdown(f"""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
@@ -427,17 +427,19 @@ elif st.session_state.page == "learning":
             margin-bottom: 15px;
         }}
 
-        /* STYLING FONT & LAYOUT PILIHAN GANDA (FULL MENTOK KANAN RTL) */
+        /* STYLING FONT & LAYOUT PILIHAN GANDA (FULL RTL FLEX-START KANAN) */
         div[data-testid="stRadio"] {{
             direction: rtl !important;
             text-align: right !important;
             width: 100% !important;
+            padding-right: 0px !important;
+            margin-right: 0px !important;
         }}
         div[role="radiogroup"] {{
             direction: rtl !important;
             display: flex !important;
             flex-direction: column !important;
-            align-items: flex-end !important; /* Memaksa opsi rata di tepi kanan */
+            align-items: flex-start !important; /* DUA HAL PENTING: flex-start pada RTL = RATA KANAN PENUH */
             width: 100% !important;
             margin-right: 0 !important;
             padding-right: 0 !important;
@@ -654,7 +656,7 @@ elif st.session_state.page == "learning":
 
 
 # ==============================================================================
-# HALAMAN 3: EVALUASI KOREKSI LANGSUNG PER NOMOR (FULL MENTOK KANAN RTL)
+# HALAMAN 3: EVALUASI KOREKSI LANGSUNG PER NOMOR (FULL RTL FLEX-START KANAN)
 # ==============================================================================
 elif st.session_state.page == "evaluasi":
     
@@ -665,7 +667,7 @@ elif st.session_state.page == "evaluasi":
             st.session_state.page = "learning"
             st.rerun()
 
-    # CSS INJEKSI RATA KANAN PENUH (FLUSH RIGHT)
+    # CSS INJEKSI RATA KANAN SEJAJAR DENGAN KOTAK SOAL
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
@@ -674,12 +676,14 @@ elif st.session_state.page == "evaluasi":
             direction: rtl !important;
             text-align: right !important;
             width: 100% !important;
+            padding-right: 0px !important;
+            margin-right: 0px !important;
         }
         div[role="radiogroup"] {
             direction: rtl !important;
             display: flex !important;
             flex-direction: column !important;
-            align-items: flex-end !important; /* Kunci rata kanan sejajar card */
+            align-items: flex-start !important;
             width: 100% !important;
             margin-right: 0 !important;
             padding-right: 0 !important;
