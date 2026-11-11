@@ -205,8 +205,8 @@ st.markdown("""
     /* MEMBESARKAN FONT PILIHAN JAWABAN RADIO BUTTON STREAMLIT */
     div[role="radiogroup"] label p {
         font-family: 'Amiri', serif, sans-serif !important;
-        font-size: 21px !important;
-        line-height: 1.8 !important;
+        font-size: 23px !important;
+        line-height: 2.0 !important;
         color: #0f172a !important;
         font-weight: 500 !important;
     }
