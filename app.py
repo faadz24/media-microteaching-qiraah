@@ -676,14 +676,14 @@ elif st.session_state.page == "evaluasi":
         )
 
         # Koreksi Langsung & Apresiasi Emoticon Per Nomor
-        if choice:
+       if choice:
             user_choice_key = choice.split(".")[0]
             st.session_state.user_answers[q_num] = user_choice_key
 
             if user_choice_key == key_ans:
                 st.success(f"🎉 **أَحْسَنْتَ! (Hebat Sekali! Jawabanmu Tepat!)** 🥳👏✨\n\nJawaban **[{user_choice_key}]** adalah jawaban yang benar!")
             else:
-                st.error(f"🥺 **عَفْوًا، الإِجَابَةُ غَيْرُ صَحِيحَةٍ (Aduh, Sayang Sekali Kurang Tepat!)** 😢💔\n\n**Jawaban Kamu:** [{user_choice_key}]*)
+                st.error(f"🥺 **عَفْوًا، الإِجَابَةُ غَيْرُ صَحِيحَةٍ (Aduh, Sayang Sekali Kurang Tepat!)** 😢💔\n\n**Jawaban Kamu:** [{user_choice_key}]")
 
         st.markdown("<hr style='margin: 25px 0; border: 0.5px dashed #cbd5e1;'>", unsafe_allow_html=True)
 
