@@ -112,7 +112,7 @@ words_db = {
     "لِلْعَمَلِ": {"type": "regular", "indo": "Untuk bekerja", "gram": "Harf Jar + Masdar", "ar_ex": "يَسْتَعِدُّ الخِرِّيجُونَ لِلْعَمَلِ.", "id_ex": "Para lulusan bersiap untuk bekerja."}
 }
 
-# 4. Database 20 Soal Pilihan Ganda (Opsi Opsi: أ, ب, ج, د, هـ)
+# 4. Database 20 Soal Pilihan Ganda (Opsi: أ, ب, ج, د, هـ)
 quiz_data = [
     {
         "id": 1,
@@ -329,7 +329,7 @@ elif st.session_state.page == "learning":
     with top_col3:
         font_size = st.slider("🔍 Ukuran Font Teks (px)", min_value=22, max_value=38, value=28, step=2)
 
-    # DYNAMIC CSS ENGINE UNTUK FONT SIZE & PILIHAN GANDA (28PX)
+    # DYNAMIC CSS ENGINE UNTUK FONT SIZE & PILIHAN GANDA (RTL + 28PX)
     st.markdown(f"""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
@@ -427,13 +427,30 @@ elif st.session_state.page == "learning":
             margin-bottom: 15px;
         }}
 
-        /* STYLING FONT PILIHAN GANDA (RADIO BUTTONS) -> 28PX */
+        /* STYLING FONT & LAYOUT PILIHAN GANDA (RTL DI KANAN) */
+        div[data-testid="stRadio"] {{
+            direction: rtl !important;
+            text-align: right !important;
+        }}
+        div[role="radiogroup"] {{
+            direction: rtl !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+        }}
+        div[role="radiogroup"] label {{
+            direction: rtl !important;
+            flex-direction: row !important;
+            gap: 12px !important;
+        }}
         div[role="radiogroup"] label p {{
             font-family: 'Amiri', serif, sans-serif !important;
             font-size: 28px !important;
             line-height: 2.0 !important;
             color: #0f172a !important;
             font-weight: 600 !important;
+            direction: rtl !important;
+            text-align: right !important;
         }}
     </style>
     """, unsafe_allow_html=True)
@@ -623,7 +640,7 @@ elif st.session_state.page == "learning":
 
 
 # ==============================================================================
-# HALAMAN 3: EVALUASI KOREKSI LANGSUNG PER NOMOR (OPSI: أ، ب، ج، د، هـ & ANGKA ARAB)
+# HALAMAN 3: EVALUASI KOREKSI LANGSUNG PER NOMOR (FULL RTL KANAN)
 # ==============================================================================
 elif st.session_state.page == "evaluasi":
     
@@ -634,12 +651,26 @@ elif st.session_state.page == "evaluasi":
             st.session_state.page = "learning"
             st.rerun()
 
-    # CSS INJEKSI TAMBAHAN UNTUK RADIO OPTION (28PX) & JUDUL SOAL (30PX)
+    # CSS INJEKSI PERBAIKAN MERATAKAN PILIHAN GANDA & RADIO BUTTON KE KANAN
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
         
-        /* PILIHAN GANDA (أ، ب، ج، د، هـ) UKURAN 28PX */
+        div[data-testid="stRadio"] {
+            direction: rtl !important;
+            text-align: right !important;
+        }
+        div[role="radiogroup"] {
+            direction: rtl !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+        }
+        div[role="radiogroup"] label {
+            direction: rtl !important;
+            flex-direction: row !important;
+            gap: 12px !important;
+        }
         div[role="radiogroup"] label p {
             font-family: 'Amiri', serif, sans-serif !important;
             font-size: 28px !important;
@@ -675,7 +706,7 @@ elif st.session_state.page == "evaluasi":
 
     st.caption(f"📊 **Progres Pengerjaan Kelas:** Terjawab: **{to_ar_num(answered_count)} / ٢٠** | Jawaban Benar: **{to_ar_num(correct_count)}**")
 
-    # Loop Render Soal dengan Pertanyaan 30px & Pilihan Ganda 28px
+    # Loop Render Soal dengan Pertanyaan 30px & Pilihan Ganda RTL Kanan (28px)
     for item in quiz_data:
         q_num = item["id"]
         ar_q_num = to_ar_num(q_num)
