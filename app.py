@@ -10,8 +10,6 @@ st.set_page_config(
 # 2. Manajemen Navigasi Halaman & State Evaluasi
 if "page" not in st.session_state:
     st.session_state.page = "opening"
-if "quiz_submitted" not in st.session_state:
-    st.session_state.quiz_submitted = False
 if "user_answers" not in st.session_state:
     st.session_state.user_answers = {}
 
@@ -181,32 +179,34 @@ st.markdown("""
         font-size: 13px;
     }
 
-    /* EVALUASI SOAL STYLING */
+    /* EVALUASI SOAL STYLING & PENYESUAIAN FONT PILIHAN */
     .question-card {
         background-color: #ffffff;
         border-radius: 12px;
         padding: 20px 25px;
-        margin-bottom: 20px;
-        border-left: 5px solid #1e3a8a;
+        margin-top: 15px;
+        margin-bottom: 12px;
+        border-left: 6px solid #1e3a8a;
         box-shadow: 0 4px 6px rgba(0,0,0,0.04);
     }
     .question-arabic {
         font-family: 'Amiri', serif;
-        font-size: 24px;
+        font-size: 26px;
         direction: rtl;
         text-align: right;
         color: #0f172a;
         font-weight: bold;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         line-height: 1.8;
     }
-    .score-card {
-        background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%);
-        color: white;
-        padding: 25px;
-        border-radius: 15px;
-        text-align: center;
-        margin-bottom: 25px;
+
+    /* REVISI 2: MEMBESARKAN FONT PILIHAN JAWABAN RADIO BUTTON STREAMLIT */
+    div[role="radiogroup"] label p {
+        font-family: 'Amiri', serif, sans-serif !important;
+        font-size: 21px !important;
+        line-height: 1.8 !important;
+        color: #0f172a !important;
+        font-weight: 500 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -291,7 +291,7 @@ words_db = {
     "المُنَاقَشَةِ": {"type": "regular", "indo": "Diskusi / Tanya Jawab", "gram": "Isim Masdar", "ar_ex": "جَرَتْ المُنَاقَشَةُ بِبَالِغِ الاِهْتِمَامِ.", "id_ex": "Diskusi berlangsung dengan penuh perhatian."},
     "الأَسَاتِذَةِ": {"type": "regular", "indo": "Para Dosen / Pengajar", "gram": "Isim Jamak dari Ustadz", "ar_ex": "يَحْتَرِمُ الطُّلَّابُ الأَسَاتِذَةَ.", "id_ex": "Para siswa menghormati para dosen."},
     "وَالأَصْدِقَاءِ": {"type": "regular", "indo": "Dan teman-teman", "gram": "Isim Jamak Taksir", "ar_ex": "يَتَكَلَّمُ الطَّالِبُ مَعَ الأَصْدِقَاءِ.", "id_ex": "Siswa berbicara bersama teman-teman."},
-    "وَيَسْتَخْدِمُونَ": {"type": "regular", "indo": "Dan meeka menggunakan", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَسْتَخْدِمُونَ الحَاسُوبَ فِي الدِّرَاسَةِ.", "id_ex": "Dan mereka menggunakan komputer dalam belajar."},
+    "وَيَسْتَخْدِمُونَ": {"type": "regular", "indo": "Dan mereka menggunakan", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَسْتَخْدِمُونَ الحَاسُوبَ فِي الدِّرَاسَةِ.", "id_ex": "Dan mereka menggunakan komputer dalam belajar."},
     "طُرُقًا": {"type": "regular", "indo": "Metode-metode / Cara", "gram": "Isim Jamak", "ar_ex": "يَتَّبِعُ الأُسْتَاذُ طُرُقًا حَدِيثَةً.", "id_ex": "Dosen menerapkan metode-metode modern."},
     "حَدِيثَةً": {"type": "regular", "indo": "Modern / Terbaru", "gram": "Na'at / Kata Sifat", "ar_ex": "يَسْتَخْدِمُونَ وَسَائِلَ حَدِيثَةً.", "id_ex": "Mereka menggunakan media modern."},
     "التَّعَلُّمِ": {"type": "regular", "indo": "Pembelajaran / Studi", "gram": "Isim Masdar", "ar_ex": "التَّعَلُّمُ عَمَلِيَّةٌ مُسْتَمِرَّةٌ.", "id_ex": "Pembelajaran adalah proses yang berkelanjutan."},
@@ -448,7 +448,7 @@ def w(arabic_word, db_key=None):
 
 
 # ==============================================================================
-# HALAMAN 1: OPENING / WELCOME SCREEN
+# HALAMAN 1: OPENING / WELCOME SCREEN (REVISI 1: HANYA ADA TOMBOL MULAI PEMBELAJARAN)
 # ==============================================================================
 if st.session_state.page == "opening":
     st.markdown('<h1 class="main-title">🎓 Smart Qira\'ah Reader</h1>', unsafe_allow_html=True)
@@ -485,22 +485,18 @@ if st.session_state.page == "opening":
     with col_f3:
         st.markdown("""
         <div class="feature-card">
-            <h4>📝 Evaluasi Pemahaman</h4>
-            <p style="font-size:14px; color:#475569;">Uji kemampuan membaca dengan 20 soal pilihan ganda interaktif beserta penilaian otomatis.</p>
+            <h4>📝 Evaluasi Pemahaman Live</h4>
+            <p style="font-size:14px; color:#475569;">Latihan 20 soal pilihan ganda interaktif dengan koreksi langsung per nomor untuk diskusi kelas.</p>
         </div>
         """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Tombol Utama Navigasi
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        if st.button("🚀 MULAI PEMBELAJARAN (TEKS)", use_container_width=True, type="primary"):
-            st.session_state.page = "learning"
-            st.rerun()
+    # REVISI 1: HANYA TOMBOL MULAI PEMBELAJARAN
+    col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
     with col_btn2:
-        if st.button("📝 EVALUASI SOAL (20 PG)", use_container_width=True):
-            st.session_state.page = "evaluasi"
+        if st.button("🚀 MULAI PEMBELAJARAN (ابدَأ الدِّرَاسَةَ)", use_container_width=True, type="primary"):
+            st.session_state.page = "learning"
             st.rerun()
 
 
@@ -600,7 +596,7 @@ elif st.session_state.page == "learning":
 
 
 # ==============================================================================
-# HALAMAN 3: EVALUASI PEMAHAMAN TEKS (20 SOAL PILIHAN GANDA)
+# HALAMAN 3: EVALUASI KOREKSI LANGSUNG PER NOMOR (REVISI 3 & REVISI 4)
 # ==============================================================================
 elif st.session_state.page == "evaluasi":
     
@@ -615,96 +611,69 @@ elif st.session_state.page == "evaluasi":
 
     # Header Evaluasi
     st.markdown("""
-    <div style="text-align: center; margin-bottom: 25px;">
+    <div style="text-align: center; margin-bottom: 20px;">
         <h2 style="font-family: 'Amiri', serif; color: #1e3a8a; font-size: 36px; margin-bottom: 5px;">اِخْتِبَارُ فَهْمِ الْمَقْرُوءِ</h2>
-        <h3 style="color: #334155; margin-top: 0;">Evaluasi Pemahaman Teks Bahasa Arab</h3>
+        <h3 style="color: #334155; margin-top: 0;">Evaluasi Pemahaman Teks Bahasa Arab (Koreksi Langsung)</h3>
         <p style="color: #64748b;"><b>Mata Pelajaran:</b> Bahasa Arab | <b>Kelas:</b> XII MA (Genap) | <b>Bentuk:</b> Pilihan Ganda (20 Soal)</p>
     </div>
     """, unsafe_allow_html=True)
 
-    st.info("📌 **التَّعْلِيمَاتُ (Petunjuk):** اخْتَرِ الْإِجَابَةَ الصَّحِيحَةَ مِنَ الْخِيَارَاتِ أ، ب، ج، د، أَوْ هـ! *(Pilihlah satu jawaban yang paling tepat dari pilihan A, B, C, D, atau E!)*")
+    st.info("📌 **التَّعْلِيمَاتُ (Petunjuk Guru & Siswa):** Pilihlah opsi jawaban per nomor. **Hasil koreksi, apresiasi, & pembahasan akan langsung muncul di bawah nomor tersebut** untuk bahan diskusi bersama di kelas!")
 
-    # Form Soal Evaluasi
-    with st.form(key="quiz_form"):
-        for item in quiz_data:
-            q_num = item["id"]
-            q_text = item["q"]
-            opts = item["opts"]
-            
-            st.markdown(f"""
-            <div class="question-card">
-                <div style="color: #2563eb; font-weight: bold; font-size: 14px; margin-bottom: 5px;">Soal Nomor {q_num} dari 20</div>
-                <div class="question-arabic">{q_num}. {q_text}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Format Pilihan Jawaban
-            formatted_opts = [f"{k}. {v}" for k, v in opts.items()]
-            
-            # Default index selection
-            saved_ans = st.session_state.user_answers.get(q_num, None)
-            default_idx = None
-            if saved_ans:
-                default_idx = ["A", "B", "C", "D", "E"].index(saved_ans)
-                
-            choice = st.radio(
-                label=f"Pilih Jawaban Soal {q_num}:",
-                options=formatted_opts,
-                index=default_idx,
-                key=f"q_{q_num}",
-                label_visibility="collapsed"
-            )
-            
-            if choice:
-                st.session_state.user_answers[q_num] = choice.split(".")[0]
-            st.write("")
+    # Ringkasan Skor Real-Time
+    answered_count = len(st.session_state.user_answers)
+    correct_count = 0
+    for q_id, u_ans in st.session_state.user_answers.items():
+        q_item = next((item for item in quiz_data if item["id"] == q_id), None)
+        if q_item and u_ans == q_item["key"]:
+            correct_count += 1
 
-        submit_btn = st.form_submit_button(label="🎯 Kirim Jawaban & Lihat Hasil", type="primary", use_container_width=True)
+    st.caption(f"📊 **Progres Pengerjaan Kelas:** Terjawab: **{answered_count} / 20** | Jawaban Benar: **{correct_count}**")
 
-        if submit_btn:
-            st.session_state.quiz_submitted = True
-            st.rerun()
-
-    # Hasil Skor dan Koreksi
-    if st.session_state.quiz_submitted:
-        score = 0
-        correct_count = 0
+    # Loop Render Soal dengan Koreksi Langsung
+    for item in quiz_data:
+        q_num = item["id"]
+        q_text = item["q"]
+        opts = item["opts"]
+        key_ans = item["key"]
         
-        for item in quiz_data:
-            q_num = item["id"]
-            user_ans = st.session_state.user_answers.get(q_num, "")
-            if user_ans == item["key"]:
-                correct_count += 1
-                
-        score = int((correct_count / len(quiz_data)) * 100)
-
-        st.markdown("---")
         st.markdown(f"""
-        <div class="score-card">
-            <h2 style="margin: 0; font-size: 28px;">📊 Hasil Evaluasi Pemahaman</h2>
-            <h1 style="font-size: 64px; margin: 10px 0; color: #fde047;">{score} / 100</h1>
-            <p style="font-size: 18px; margin: 0;">Kamu menjawab <b>{correct_count}</b> benar dari <b>20 soal</b>.</p>
+        <div class="question-card">
+            <div style="color: #2563eb; font-weight: bold; font-size: 14px; margin-bottom: 5px;">Soal Nomor {q_num} dari 20</div>
+            <div class="question-arabic">{q_num}. {q_text}</div>
         </div>
         """, unsafe_allow_html=True)
+        
+        # Format Pilihan Jawaban
+        formatted_opts = [f"{k}. {v}" for k, v in opts.items()]
+        
+        # Pilihan Jawaban
+        saved_ans = st.session_state.user_answers.get(q_num, None)
+        default_idx = None
+        if saved_ans:
+            default_idx = ["A", "B", "C", "D", "E"].index(saved_ans)
 
-        # Rincian Pembahasan Jawaban
-        st.subheader("📋 Rincian & Kunci Jawaban Soal:")
-        for item in quiz_data:
-            q_num = item["id"]
-            user_ans = st.session_state.user_answers.get(q_num, "Belum diisi")
-            key_ans = item["key"]
-            is_correct = (user_ans == key_ans)
-            
-            icon = "✅" if is_correct else "❌"
-            color = "green" if is_correct else "red"
-            
-            with st.expander(f"{icon} Soal #{q_num}: {item['q'][:50]}..."):
-                st.markdown(f"**Pertanyaan:** {item['q']}")
-                st.markdown(f"**Jawaban Kamu:** :{color}[{user_ans}]")
-                st.markdown(f"**Kunci Jawaban:** **{key_ans}** ({item['opts'][key_ans]})")
+        choice = st.radio(
+            label=f"Pilih Jawaban Soal {q_num}:",
+            options=formatted_opts,
+            index=default_idx,
+            key=f"q_radio_{q_num}",
+            label_visibility="collapsed"
+        )
 
-        st.write("")
-        if st.button("🔄 Ulangi Evaluasi Soal", type="secondary"):
-            st.session_state.quiz_submitted = False
-            st.session_state.user_answers = {}
-            st.rerun()
+        # REVISI 3 & 4: KOREKSI LANGSUNG & APRESIASI EMOTICON PER NOMOR
+        if choice:
+            user_choice_key = choice.split(".")[0]
+            st.session_state.user_answers[q_num] = user_choice_key
+
+            if user_choice_key == key_ans:
+                st.success(f"🎉 **أَحْسَنْتَ! (Hebat Sekali! Jawabanmu Tepat!)** 🥳👏✨\n\nJawaban **[{user_choice_key}]** adalah jawaban yang benar!")
+            else:
+                st.error(f"🥺 **عَفْوًا، الإِجَابَةُ غَيْرُ صَحِيحَةٍ (Aduh, Sayang Sekali Kurang Tepat!)** 😢💔\n\n**Jawaban Kamu:** [{user_choice_key}] | **Kunci Jawaban yang Benar:** **[{key_ans}]** ({opts[key_ans]})\n\n💡 *Ayo diskusikan kembali bersama guru & teman-teman kelas!*")
+
+        st.markdown("<hr style='margin: 25px 0; border: 0.5px dashed #cbd5e1;'>", unsafe_allow_html=True)
+
+    # Tombol Reset
+    if st.button("🔄 Reset / Ulangi Semua Soal Evaluasi"):
+        st.session_state.user_answers = {}
+        st.rerun()
