@@ -88,7 +88,7 @@ words_db = {
     "الدُّرُوسَ": {"type": "regular", "indo": "Pelajaran-pelajaran / Perkuliahan", "gram": "Isim Jamak Taksir", "ar_ex": "يَفْهَمُ الطَّالِبُ الدُّرُوسَ جَيِّدًا.", "id_ex": "Siswa paham pelajaran-pelajaran dengan baik."},
     "الفَصْلِ": {"type": "regular", "indo": "Ruang Kelas", "gram": "Isim Tempat", "ar_ex": "يَجْلِسُ الطُّلَّابُ فِي الفَصْلِ.", "id_ex": "Para siswa duduk di ruang kelas."},
     "مَعَ": {"type": "regular", "indo": "Bersama / Dengan", "gram": "Zaraf Makan", "ar_ex": "يَتَنَاقَشُ الطَّالِبُ مَعَ الأُسْتَاذِ.", "id_ex": "Siswa berdiskusi bersama dosen."},
-    "وَيَذْهَبُونَ": {"type": "regular", "indo": "Dan meeka pergi", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَذْهَبُونَ إِلَى المَكْتَبَةِ كُلَّ يَوْمٍ.", "id_ex": "Dan mereka pergi ke perpustakaan setiap hari."},
+    "وَيَذْهَبُونَ": {"type": "regular", "indo": "Dan meeka pergi", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَذْهَبُونَ إِلَى المَكْتَبَةِ كُلَّ يَوْمٍ.", "id_ex": "Dan meeka pergi ke perpustakaan setiap hari."},
     "لِلْقِرَاءَةِ": {"type": "regular", "indo": "Untuk membaca", "gram": "Harf Jar + Masdar", "ar_ex": "يَذْهَبُ إِلَى المَكْتَبَةِ لِلْقِرَاءَةِ.", "id_ex": "Ia pergi ke perpustakaan untuk membaca."},
     "وَالبَحْثِ": {"type": "regular", "indo": "Dan meriset / mencari data", "gram": "Isim Masdar", "ar_ex": "يَقُومُ الطُّلَّابُ بِالقِرَاءَةِ وَالبَحْثِ.", "id_ex": "Para siswa melakukan pembacaan dan penelitian."},
     "عَنِ": {"type": "regular", "indo": "Tentang / Dari", "gram": "Harf Jar", "ar_ex": "يَبْحَثُ الطَّالِبُ عَنِ المَعْلُومَاتِ.", "id_ex": "Siswa mencari informasi."},
@@ -310,11 +310,11 @@ if st.session_state.page == "opening":
 
 
 # ==============================================================================
-# HALAMAN 2: MATERI PEMBELAJARAN & READER (DENGAN SLIDER FONT & FLASHCARD)
+# HALAMAN 2 & 3: MATERI PEMBELAJARAN & EVALUASI
 # ==============================================================================
 elif st.session_state.page == "learning":
     
-    # 1. TOP NAV BAR (TAMBAHAN FITUR 3: SLIDER UKURAN FONT)
+    # 1. TOP NAV BAR
     top_col1, top_col2, top_col3 = st.columns([1.2, 1.5, 1.3])
     with top_col1:
         if st.button("⬅️ Ke Halaman Utama"):
@@ -325,7 +325,7 @@ elif st.session_state.page == "learning":
     with top_col3:
         font_size = st.slider("🔍 Ukuran Font Teks (px)", min_value=22, max_value=38, value=28, step=2)
 
-    # DYNAMIC CSS ENGINE UNTUK FONT SIZE & STYLING TEKS
+    # DYNAMIC CSS ENGINE UNTUK FONT SIZE & PILIHAN GANDA (28PX)
     st.markdown(f"""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
@@ -422,6 +422,15 @@ elif st.session_state.page == "learning":
             box-shadow: 0 10px 25px rgba(37, 99, 235, 0.15);
             margin-bottom: 15px;
         }}
+
+        /* STYLING FONT PILIHAN GANDA (RADIO BUTTONS) -> DISET 28PX */
+        div[role="radiogroup"] label p {{
+            font-family: 'Amiri', serif, sans-serif !important;
+            font-size: 28px !important;
+            line-height: 2.0 !important;
+            color: #0f172a !important;
+            font-weight: 600 !important;
+        }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -444,7 +453,7 @@ elif st.session_state.page == "learning":
         """, unsafe_allow_html=True)
         st.info("💡 **Mode Fokus Baca Aktif:** Pop-up dinonaktifkan agar teks tampil bersih untuk dibaca di depan proyektor.")
 
-    # TAB UTAMA: TAB BACAAN & TAB MINI-GAME FLASHCARD (FITUR 4)
+    # TAB UTAMA: TAB BACAAN & TAB MINI-GAME FLASHCARD
     tab_read, tab_flashcard = st.tabs(["📖 Teks Bacaan & Diskusi CTL", "🃏 Mini Game Flashcard (17 Mufrodat Wajib)"])
 
     # --------------------------------------------------------------------------
@@ -529,13 +538,12 @@ elif st.session_state.page == "learning":
                 st.rerun()
 
     # --------------------------------------------------------------------------
-    # TAB 2: FITUR 4 - MINI GAME FLASHCARD MUFRODAT (KARTU HAFALAN INTERAKTIF)
+    # TAB 2: MINI GAME FLASHCARD MUFRODAT (KARTU HAFALAN INTERAKTIF)
     # --------------------------------------------------------------------------
     with tab_flashcard:
         target_words = [k for k, v in words_db.items() if v.get("type") == "target"]
         total_cards = len(target_words)
         
-        # Pastikan index aman
         curr_idx = st.session_state.flash_idx % total_cards
         curr_word = target_words[curr_idx]
         word_info = words_db[curr_word]
@@ -547,7 +555,6 @@ elif st.session_state.page == "learning":
         </div>
         """, unsafe_allow_html=True)
 
-        # NAVIGASI BUTTON KARTU
         c_prev, c_flip, c_next, c_rand = st.columns([1, 1.8, 1, 1])
         
         with c_prev:
@@ -575,14 +582,11 @@ elif st.session_state.page == "learning":
                 st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)
-
-        # TAMPILAN KARTU FLASHCARD INTERAKTIF
         st.markdown(f"<div style='text-align:center; font-weight:bold; color:#2563eb;'>Kartu {curr_idx + 1} dari {total_cards}</div>", unsafe_allow_html=True)
 
         col_fc1, col_fc2, col_fc3 = st.columns([1, 2.5, 1])
         with col_fc2:
             if not st.session_state.card_flipped:
-                # DEPAN KARTU: KATA ARAB & AUDIO
                 st.markdown(f"""
                 <div class="flashcard-box">
                     <div style="font-size: 14px; color: #94a3b8; margin-bottom: 10px;">- SISI DEPAN KARTU -</div>
@@ -591,7 +595,6 @@ elif st.session_state.page == "learning":
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Pemutar Audio di Sisi Depan Kartu
                 try:
                     tts = gTTS(text=curr_word, lang='ar')
                     fp = io.BytesIO()
@@ -601,7 +604,6 @@ elif st.session_state.page == "learning":
                 except Exception:
                     pass
             else:
-                # BELAKANG KARTU: ARTI, GAMBAR VISUAL, CONTOH & CTL
                 st.markdown(f"""
                 <div class="flashcard-box" style="background: #f0f9ff; border-color: #0284c7;">
                     <div style="font-size: 14px; color: #0284c7; font-weight:bold; margin-bottom: 5px;">- SISI BELAKANG KARTU -</div>
@@ -617,7 +619,7 @@ elif st.session_state.page == "learning":
 
 
 # ==============================================================================
-# HALAMAN 3: EVALUASI KOREKSI LANGSUNG PER NOMOR
+# HALAMAN 3: EVALUASI KOREKSI LANGSUNG PER NOMOR (FONT OPTION 28PX & SOAL 30PX)
 # ==============================================================================
 elif st.session_state.page == "evaluasi":
     
@@ -628,12 +630,28 @@ elif st.session_state.page == "evaluasi":
             st.session_state.page = "learning"
             st.rerun()
 
+    # CSS INJEKSI TAMBAHAN TERUTAMA UNTUK RADIO OPTION (28PX)
+    st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
+        
+        /* PILIHAN GANDA (A, B, C, D, E) UKURAN 28PX */
+        div[role="radiogroup"] label p {
+            font-family: 'Amiri', serif, sans-serif !important;
+            font-size: 28px !important;
+            line-height: 1.9 !important;
+            color: #0f172a !important;
+            font-weight: 600 !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
     st.markdown("---")
 
     # Header Evaluasi
     st.markdown("""
     <div style="text-align: center; margin-bottom: 20px;">
-        <h2 style="font-family: 'Amiri', serif; color: #1e3a8a; font-size: 36px; margin-bottom: 5px;">اِخْتِبَارُ فَهْمِ الْمَقْرُوءِ</h2>
+        <h2 style="font-family: 'Amiri', serif; color: #1e3a8a; font-size: 38px; margin-bottom: 5px;">اِخْتِبَارُ فَهْمِ الْمَقْرُوءِ</h2>
         <h3 style="color: #334155; margin-top: 0;">Evaluasi Pemahaman Teks Bahasa Arab (Koreksi Langsung)</h3>
         <p style="color: #64748b;"><b>Mata Pelajaran:</b> Bahasa Arab | <b>Kelas:</b> XII MA (Genap) | <b>Bentuk:</b> Pilihan Ganda (20 Soal)</p>
     </div>
@@ -651,7 +669,7 @@ elif st.session_state.page == "evaluasi":
 
     st.caption(f"📊 **Progres Pengerjaan Kelas:** Terjawab: **{answered_count} / 20** | Jawaban Benar: **{correct_count}**")
 
-    # Loop Render Soal dengan Koreksi Langsung
+    # Loop Render Soal dengan Pertanyaan 30px & Pilihan Ganda 28px
     for item in quiz_data:
         q_num = item["id"]
         q_text = item["q"]
@@ -659,9 +677,9 @@ elif st.session_state.page == "evaluasi":
         key_ans = item["key"]
         
         st.markdown(f"""
-        <div style="background-color: #ffffff; border-radius: 12px; padding: 20px 25px; margin-top: 15px; margin-bottom: 12px; border-left: 6px solid #1e3a8a; box-shadow: 0 4px 6px rgba(0,0,0,0.04);">
-            <div style="color: #2563eb; font-weight: bold; font-size: 14px; margin-bottom: 5px;">Soal Nomor {q_num} dari 20</div>
-            <div style="font-family: 'Amiri', serif; font-size: 26px; direction: rtl; text-align: right; color: #0f172a; font-weight: bold; margin-bottom: 10px; line-height: 1.8;">{q_num}. {q_text}</div>
+        <div style="background-color: #ffffff; border-radius: 12px; padding: 22px 28px; margin-top: 15px; margin-bottom: 15px; border-left: 6px solid #1e3a8a; box-shadow: 0 4px 6px rgba(0,0,0,0.04);">
+            <div style="color: #2563eb; font-weight: bold; font-size: 15px; margin-bottom: 6px;">Soal Nomor {q_num} dari 20</div>
+            <div style="font-family: 'Amiri', serif; font-size: 30px; direction: rtl; text-align: right; color: #0f172a; font-weight: bold; margin-bottom: 10px; line-height: 1.8;">{q_num}. {q_text}</div>
         </div>
         """, unsafe_allow_html=True)
         
