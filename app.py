@@ -681,9 +681,9 @@ elif st.session_state.page == "evaluasi":
             st.session_state.user_answers[q_num] = user_choice_key
 
             if user_choice_key == key_ans:
-                st.success(f"🎉 **أَحْسَنْتَ! (Hebat Sekali! Jawabanmu Tepat!)** 🥳👏✨\n\nJawaban **[{user_choice_key}]** adalah jawaban yang benar!")
+                st.success(f"🎉 **أَحْسَنْتَ!** 🥳👏✨\n\nJawaban **[{user_choice_key}]** adalah jawaban yang benar!")
             else:
-                st.error(f"🥺 **عَفْوًا، الإِجَابَةُ غَيْرُ صَحِيحَةٍ (Aduh, Sayang Sekali Kurang Tepat!)** 😢💔\n\n**Jawaban Kamu:** [{user_choice_key}] | **Kunci Jawaban yang Benar:** **[{key_ans}]** ({opts[key_ans]})\n\n💡 *Ayo diskusikan kembali bersama guru & teman-teman kelas!*")
+                st.error(f"🥺 **عَفْوًا، الإِجَابَةُ غَيْرُ صَحِيحَةٍ** 😢💔\n\n**Jawaban Kamu:** [{user_choice_key}] | **Kunci Jawaban yang Benar:** **[{key_ans}]** ({opts[key_ans]})\n\n💡 *Ayo diskusikan kembali bersama guru & teman-teman kelas!*")
 
         st.markdown("<hr style='margin: 25px 0; border: 0.5px dashed #cbd5e1;'>", unsafe_allow_html=True)
 
