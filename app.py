@@ -7,9 +7,13 @@ st.set_page_config(
     layout="wide"
 )
 
-# 2. Manajemen Navigasi Halaman via Session State
+# 2. Manajemen Navigasi Halaman & State Evaluasi
 if "page" not in st.session_state:
     st.session_state.page = "opening"
+if "quiz_submitted" not in st.session_state:
+    st.session_state.quiz_submitted = False
+if "user_answers" not in st.session_state:
+    st.session_state.user_answers = {}
 
 # 3. Injeksi CSS Utama
 st.markdown("""
@@ -176,6 +180,34 @@ st.markdown("""
         margin-top: 6px;
         font-size: 13px;
     }
+
+    /* EVALUASI SOAL STYLING */
+    .question-card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 20px 25px;
+        margin-bottom: 20px;
+        border-left: 5px solid #1e3a8a;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.04);
+    }
+    .question-arabic {
+        font-family: 'Amiri', serif;
+        font-size: 24px;
+        direction: rtl;
+        text-align: right;
+        color: #0f172a;
+        font-weight: bold;
+        margin-bottom: 12px;
+        line-height: 1.8;
+    }
+    .score-card {
+        background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 25px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -202,7 +234,7 @@ words_db = {
     "اِسْتَعَدَّ - يَسْتَعِدُّ": {"type": "target", "indo": "Bersiap-siap", "ctl": "💡 CTL: Persiapan berkas & mental kelas 12.", "ar_ex": "يَسْتَعِدُّ لِلاِمْتِحَانِ.", "id_ex": "Bersiap-siap menghadapi ujian.", "img_url": "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400"},
     "أَفَادَ - يُفِيدُ": {"type": "target", "indo": "Memberi Manfaat", "ctl": "💡 CTL: Pengabdian ilmu untuk kemaslahatan.", "ar_ex": "العِلْمُ يُفِيدُ النَّاسَ.", "id_ex": "Ilmu memberikan manfaat bagi manusia.", "img_url": "https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?w=400"},
 
-    # --- KATA PENDUKUNG LAINNYA (TANPA GAMBAR, TETAP ADA ARTI + CONTOH KALIMAT + GRAMATIKAL) ---
+    # --- KATA PENDUKUNG LAINNYA (TANPA GAMBAR) ---
     "بَعْدَ": {"type": "regular", "indo": "Setelah", "gram": "Zaraf Zaman (Keterangan Waktu)", "ar_ex": "نَلْتَقِي بَعْدَ الصَّلَاةِ.", "id_ex": "Kita bertemu setelah shalat."},
     "التَّخَرُّجِ": {"type": "regular", "indo": "Kelulusan / Wisuda", "gram": "Isim Masdar", "ar_ex": "اِحْتَفَلَ الطُّلَّابُ بِالتَّخَرُّجِ.", "id_ex": "Para siswa merayakan kelulusan."},
     "مِنَ": {"type": "regular", "indo": "Dari", "gram": "Harf Jar", "ar_ex": "خَرَجَ الطَّالِبُ مِنَ الفَصْلِ.", "id_ex": "Siswa itu keluar dari kelas."},
@@ -259,7 +291,7 @@ words_db = {
     "المُنَاقَشَةِ": {"type": "regular", "indo": "Diskusi / Tanya Jawab", "gram": "Isim Masdar", "ar_ex": "جَرَتْ المُنَاقَشَةُ بِبَالِغِ الاِهْتِمَامِ.", "id_ex": "Diskusi berlangsung dengan penuh perhatian."},
     "الأَسَاتِذَةِ": {"type": "regular", "indo": "Para Dosen / Pengajar", "gram": "Isim Jamak dari Ustadz", "ar_ex": "يَحْتَرِمُ الطُّلَّابُ الأَسَاتِذَةَ.", "id_ex": "Para siswa menghormati para dosen."},
     "وَالأَصْدِقَاءِ": {"type": "regular", "indo": "Dan teman-teman", "gram": "Isim Jamak Taksir", "ar_ex": "يَتَكَلَّمُ الطَّالِبُ مَعَ الأَصْدِقَاءِ.", "id_ex": "Siswa berbicara bersama teman-teman."},
-    "وَيَسْتَخْدِمُونَ": {"type": "regular", "indo": "Dan mereka menggunakan", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَسْتَخْدِمُونَ الحَاسُوبَ فِي الدِّرَاسَةِ.", "id_ex": "Dan mereka menggunakan komputer dalam belajar."},
+    "وَيَسْتَخْدِمُونَ": {"type": "regular", "indo": "Dan meeka menggunakan", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَسْتَخْدِمُونَ الحَاسُوبَ فِي الدِّرَاسَةِ.", "id_ex": "Dan mereka menggunakan komputer dalam belajar."},
     "طُرُقًا": {"type": "regular", "indo": "Metode-metode / Cara", "gram": "Isim Jamak", "ar_ex": "يَتَّبِعُ الأُسْتَاذُ طُرُقًا حَدِيثَةً.", "id_ex": "Dosen menerapkan metode-metode modern."},
     "حَدِيثَةً": {"type": "regular", "indo": "Modern / Terbaru", "gram": "Na'at / Kata Sifat", "ar_ex": "يَسْتَخْدِمُونَ وَسَائِلَ حَدِيثَةً.", "id_ex": "Mereka menggunakan media modern."},
     "التَّعَلُّمِ": {"type": "regular", "indo": "Pembelajaran / Studi", "gram": "Isim Masdar", "ar_ex": "التَّعَلُّمُ عَمَلِيَّةٌ مُسْتَمِرَّةٌ.", "id_ex": "Pembelajaran adalah proses yang berkelanjutan."},
@@ -269,7 +301,131 @@ words_db = {
     "لِلْعَمَلِ": {"type": "regular", "indo": "Untuk bekerja", "gram": "Harf Jar + Masdar", "ar_ex": "يَسْتَعِدُّ الخِرِّيجُونَ لِلْعَمَلِ.", "id_ex": "Para lulusan bersiap untuk bekerja."}
 }
 
-# Fungsi Builder Pop-Up Interaktif (HANYA TARGET YANG MEMAKAI GAMBAR)
+# 5. Database 20 Soal Pilihan Ganda & Kunci Jawaban
+quiz_data = [
+    {
+        "id": 1,
+        "q": "مَا الْفِكْرَةُ الرَّئِيسَةُ الَّتِي تَجْمَعُ الْفَقَرَاتِ الثَّلَاثَ؟",
+        "opts": {"A": "أَهَمِّيَّةُ التَّعْلِيمِ فِي الْمَدْرَسَةِ الثَّانَوِيَّةِ", "B": "مَرَاحِلُ الدِّرَاسَةِ وَالْحَيَاةُ فِي الْجَامِعَةِ", "C": "أَنْوَاعُ الْكُلِّيَّاتِ فِي الْجَامِعَةِ", "D": "دَوْرُ الْأُسْتَاذِ فِي تَعْلِيمِ الطُّلَّابِ", "E": "أَهَمِّيَّةُ الْعَمَلِ بَعْدَ التَّخَرُّجِ"},
+        "key": "B"
+    },
+    {
+        "id": 2,
+        "q": "لِمَاذَا يَذْهَبُ الطُّلَّابُ إِلَى الْجَامِعَةِ بَعْدَ التَّخَرُّجِ مِنَ الْمَدْرَسَةِ؟",
+        "opts": {"A": "لِلْعَمَلِ فِي الْمُؤَسَّسَاتِ الْحُكُومِيَّةِ", "B": "لِلْبَحْثِ عَنِ الْأَصْدِقَاءِ الْجُدُدِ", "C": "لِلتَّسْجِيلِ وَتَقْدِيمِ الْأَوْرَاقِ وَمُوَاصَلَةِ التَّعْلِيمِ", "D": "لِاخْتِيَارِ الْمَدْرَسَةِ الثَّانَوِيَّةِ", "E": "لِلْحُصُولِ عَلَى وَظِيفَةٍ فَوْرًا"},
+        "key": "C"
+    },
+    {
+        "id": 3,
+        "q": "مَا الْمَقْصُودُ بِعِبَارَةِ «يَعْتَمِدُوا عَلَى أَنْفُسِهِمْ» فِي الْفَقَرَةِ الْأُولَى؟",
+        "opts": {"A": "أَنْ يَعِيشُوا بَعِيدًا عَنْ أُسَرِهِمْ دَائِمًا", "B": "أَنْ يَتَّخِذُوا قَرَارَاتِهِمْ وَيَتَحَمَّلُوا مَسْؤُولِيَّاتِهِمْ", "C": "أَنْ يَتَوَقَّفُوا عَنِ التَّعَلُّمِ مِنَ الْأَسَاتِذَةِ", "D": "أَنْ يَدْرُسُوا دُونَ الْحَاجَةِ إِلَى الْكُتُبِ", "E": "أَنْ يَعْمَلُوا دُونَ مُسَاعَدَةِ الْمُجْتَمَعِ"},
+        "key": "B"
+    },
+    {
+        "id": 4,
+        "q": "مَا الْعَلَاقَةُ بَيْنَ اخْتِيَارِ الْقِسْمِ وَالْإِفَادَةِ لِلْمُجْتَمَعِ؟",
+        "opts": {"A": "لَا عَلاقَةَ بَيْنَهُمَا", "B": "اخْتِيَارُ الْقِسْمِ يَهْدِفُ إِلَى تَجَنُّبِ الْعَمَلِ", "C": "يَخْتَارُ الطَّالِبُ تَخَصُّصًا يُنَاسِبُ مَيْلَهُ وَيُمَكِّنُهُ مِنْ خِدْمَةِ الْمُجْتَمَعِ", "D": "الْمُجْتَمَعُ هُوَ الَّذِي يَخْتَارُ الْقِسْمَ بَدَلًا مِنَ الطَّالِبِ", "E": "اخْتِيَارُ الْقِسْمِ يَعْتَمِدُ عَلَى رَغْبَةِ الْأُسْتَاذِ فَقَطْ"},
+        "key": "C"
+    },
+    {
+        "id": 5,
+        "q": "إِذَا كَانَ الطَّالِبُ يُحِبُّ الْعُلُومَ الصِّحِّيَّةَ وَعِلَاجَ الْمَرْضَى، فَأَيُّ اخْتِيَارٍ يُنَاسِبُهُ وَفْقًا لِلنَّصِّ؟",
+        "opts": {"A": "كُلِّيَّةُ الْهَنْدَسَةِ", "B": "كُلِّيَّةُ التَّرْبِيَةِ", "C": "كُلِّيَّةُ الشَّرِيعَةِ", "D": "كُلِّيَّةُ الطِّبِّ", "E": "قِسْمُ الْمَعْلُومَاتِ"},
+        "key": "D"
+    },
+    {
+        "id": 6,
+        "q": "مَاذَا يُمْكِنُ أَنْ نَسْتَنْتِجَ مِنْ تَكْرَارِ فِعْلِ «يَتَعَلَّمُ» وَمُشْتَقَّاتِهِ فِي النَّصِّ؟",
+        "opts": {"A": "أَنَّ الْجَامِعَةَ مَكَانٌ لِلتَّعَلُّمِ الْمُسْتَمِرِّ وَتَطْوِيرِ الْمَهَارَاتِ", "B": "أَنَّ الطُّلَّابَ يَدْرُسُونَ لِاجْتِيَازِ الِامْتِحَانِ فَقَطْ", "C": "أَنَّ التَّعَلُّمَ يَنْتَهِي بَعْدَ اخْتِيَارِ الْكُلِّيَّةِ", "D": "أَنَّ الْجَامِعَةَ تُرَكِّزُ عَلَى الْعَمَلِ دُونَ الدِّرَاسَةِ", "E": "أَنَّ الطُّلَّابَ لَا يَحْتَاجُونَ إِلَى الْمَعْرِفَةِ الْجَدِيدَةِ"},
+        "key": "A"
+    },
+    {
+        "id": 7,
+        "q": "مَا الْفَرْقُ الْأَسَاسِيُّ بَيْنَ الْفَقَرَةِ الْأُولَى وَالثَّانِيَةِ؟",
+        "opts": {"A": "الْأُولَى تَتَحَدَّثُ عَنِ الْمَكْتَبَةِ وَالثَّانِيَةُ عَنِ الْفَصْلِ", "B": "الْأُولَى تُبَيِّنُ الدُّخُولَ إِلَى الْجَامِعَةِ وَالثَّانِيَةُ تُرَكِّزُ عَلَى اخْتِيَارِ التَّخَصُّصِ", "C": "الْأُولَى عَنِ الْعَمَلِ وَالثَّانِيَةُ عَنِ السَّفَرِ", "D": "الْأُولَى عَنِ الْأَسَاتِذَةِ وَالثَّانِيَةُ عَنِ الْأَصْدِقَاءِ", "E": "كِلْتَاهُمَا تَتَحَدَّثَانِ عَنِ الِامْتِحَانَاتِ"},
+        "key": "B"
+    },
+    {
+        "id": 8,
+        "q": "مَا الْمَعْنَى الْأَقْرَبُ لِكَلِمَةِ «يُنَاسِبُهُ» فِي الْفَقَرَةِ الثَّانِيَةِ؟",
+        "opts": {"A": "يُعَارِضُهُ", "B": "يُجْبِرُهُ", "C": "يُلَائِمُهُ", "D": "يُبْعِدُهُ", "E": "يُهْمِلُهُ"},
+        "key": "C"
+    },
+    {
+        "id": 9,
+        "q": "أَيُّ الْعِبَارَاتِ الْآتِيَةِ تُمَثِّلُ اسْتِنْتَاجًا مِنَ النَّصِّ وَلَيْسَتْ مَعْلُومَةً مَذْكُورَةً صَرَاحَةً؟",
+        "opts": {"A": "يَذْهَبُ الطُّلَّابُ إِلَى الْجَامِعَةِ لِلتَّسْجِيلِ", "B": "يَتَعَلَّمُ الطُّلَّابُ أَشْيَاءَ جَدِيدَةً", "C": "يَسْتَخْدِمُ الطُّلَّابُ طُرُقًا حَدِيثَةً فِي التَّعَلُّمِ", "D": "يَحْتَاجُ الطَّالِبُ إِلَى تَحَمُّلِ الْمَسْؤُولِيَّةِ فِي حَيَاتِهِ الْجَامِعِيَّةِ", "E": "هُنَاكَ كُلِّيَّةُ الطِّبِّ وَالْهَنْدَسَةِ"},
+        "key": "D"
+    },
+    {
+        "id": 10,
+        "q": "لِمَاذَا يَذْهَبُ الطُّلَّابُ إِلَى الْمَكْتَبَةِ حَسَبَ الْفَقَرَةِ الثَّالِثَةِ؟",
+        "opts": {"A": "لِمُقَابَلَةِ أَصْحَابِ الْجَامِعَةِ فَقَطْ", "B": "لِلْقِرَاءَةِ وَالْبَحْثِ عَنِ الْمَعْلُومَاتِ", "C": "لِتَقْدِيمِ أَوْرَاقِ التَّسْجِيلِ", "D": "لِحُضُورِ الدُّرُوسِ مَعَ الْأُسْتَاذِ", "E": "لِاخْتِيَارِ الْكُلِّيَّةِ"},
+        "key": "B"
+    },
+    {
+        "id": 11,
+        "q": "مَا الَّذِي يُمَيِّزُ التَّعَلُّمَ فِي الْفَقَرَةِ الثَّالِثَةِ؟",
+        "opts": {"A": "الِاعْتِمَادُ عَلَى الْحِفْظِ فَقَطْ", "B": "الِاعْتِمَادُ عَلَى الْمُحَاضَرَاتِ دُونَ الْمُنَاقَشَةِ", "C": "تَنَوُّعُ مَصَادِرِ التَّعَلُّمِ وَطُرُقِهِ", "D": "الِاعْتِمَادُ عَلَى الْمَكْتَبَةِ دُونَ الْأُسْتَاذِ", "E": "تَرْكُ اسْتِخْدَامِ الْمَعْلُومَاتِ الْحَدِيثَةِ"},
+        "key": "C"
+    },
+    {
+        "id": 12,
+        "q": "مَا وَظِيفَةُ الْعِبَارَةِ «لِكَيْ يَكُونُوا مُسْتَعِدِّينَ لِلْعَمَلِ فِي الْمُسْتَقْبَلِ»؟",
+        "opts": {"A": "بَيَانُ سَبَبِ اسْتِخْدَامِ الطُّرُقِ الْحَدِيثَةِ", "B": "ذِكْرُ مَكَانِ الدِّرَاسَةِ", "C": "بَيَانُ نَوْعِ الْكُلِّيَّةِ", "D": "وَصْفُ وَقْتِ التَّسْجِيلِ", "E": "ذِكْرُ شَرْطِ دُخُولِ الْمَكْتَبَةِ"},
+        "key": "A"
+    },
+    {
+        "id": 13,
+        "q": "إِذَا كَانَ الطَّالِبُ يَحْضُرُ الدُّرُوسَ وَلَكِنَّهُ لَا يَبْحَثُ وَلَا يُنَاقِشُ، فَأَيُّ جَانِبٍ مِنَ التَّعَلُّمِ لَمْ يُطَبِّقْهُ كَامِلًا؟",
+        "opts": {"A": "التَّسْجِيلَ وَتَقْدِيمَ الْأَوْرَاقِ", "B": "اخْتِيَارَ الْكُلِّيَّةِ", "C": "الِاعْتِمَادَ عَلَى النَّفْسِ فَقَطْ", "D": "تَنَوُّعَ أَنْشِطَةِ التَّعَلُّمِ وَالْمُشَارَكَةَ فِيهَا", "E": "التَّخَرُّجَ مِنَ الْمَدْرَسَةِ"},
+        "key": "D"
+    },
+    {
+        "id": 14,
+        "q": "مَا الْمَعْنَى الْأَقْرَبُ لِكَلِمَةِ «الْمُسْتَقْبَلِ» فِي النَّصِّ؟",
+        "opts": {"A": "الْمَاضِي", "B": "الْحَاضِر", "C": "الزَّمَنُ الْقَادِمُ", "D": "الْوَقْتُ الْقَصِيرُ", "E": "الْوَقْتُ الْمَجْهُولُ"},
+        "key": "C"
+    },
+    {
+        "id": 15,
+        "q": "مَا الْعَلَاقَةُ بَيْنَ الْفِقْرَةِ الثَّانِيَةِ وَالْفِقْرَةِ الثَّالِثَةِ؟",
+        "opts": {"A": "الثَّانِيَةُ تَعْرِضُ اخْتِيَارَ التَّخَصُّصِ وَالثَّالِثَةُ تَعْرِضُ كَيْفِيَّةَ الدِّرَاسَةِ فِيهِ", "B": "الثَّانِيَةُ تَعْرِضُ التَّسْجِيلَ وَالثَّالِثَةُ تَعْرِضُ التَّخَرُّجَ", "C": "الثَّانِيَةُ تَعْرِضُ الْعَمَلَ وَالثَّالِثَةُ تَعْرِضُ الْبَطَالَةَ", "D": "الثَّانِيَةُ تَعْرِضُ الْمَاضِيَ وَالثَّالِثَةُ تَعْرِضُ الْحَاضِرَ", "E": "لَا تُوجَدُ عَلاقَةٌ مَعْنَوِيَّةٌ بَيْنَهُمَا"},
+        "key": "A"
+    },
+    {
+        "id": 16,
+        "q": "مَا الَّذِي يُمْكِنُ أَنْ يَحْدُثَ إِذَا لَمْ يَخْتَرِ الطَّالِبُ قِسْمًا يُنَاسِبُ مَيْلَهُ؟",
+        "opts": {"A": "سَيَتَعَلَّمُ بِطَرِيقَةٍ أَفْضَلَ حَتْمًا", "B": "قَدْ يَجِدُ صُعُوبَةً فِي الِاسْتِمْرَارِ وَتَحْقِيقِ أَهْدَافِهِ", "C": "سَيَحْصُلُ عَلَى وَظِيفَةٍ دُونَ دِرَاسَةٍ", "D": "سَيُصْبِحُ أُسْتَاذًا فِي الْجَامِعَةِ", "E": "لَنْ يَحْتَاجَ إِلَى اخْتِيَارِ كُلِّيَّةٍ"},
+        "key": "B"
+    },
+    {
+        "id": 17,
+        "q": "أَيُّ الْعَنَاوِينِ الْآتِيَةِ أَكْثَرُ شُمُولًا لِلْفَقَرَاتِ الثَّلَاثِ؟",
+        "opts": {"A": "أَنْوَاعُ الْمَكْتَبَاتِ الْجَامِعِيَّةِ", "B": "دَوْرُ الْأُسْتَاذِ فِي التَّدْرِيسِ", "C": "اخْتِيَارُ كُلِّيَّةِ الطِّبِّ", "D": "رِحْلَةُ الطَّالِبِ فِي التَّعْلِيمِ الْجَامِعِيِّ", "E": "طُرُقُ التَّسْجِيلِ فِي الْجَامِعَةِ"},
+        "key": "D"
+    },
+    {
+        "id": 18,
+        "q": "أَيُّ الْعِبَارَاتِ الْآتِيَةِ تَتَّفِقُ مَعَ مَضْمُونِ النَّصِّ؟",
+        "opts": {"A": "النَّجَاحُ الْجَامِعِيُّ يَعْتَمِدُ عَلَى الْحُضُورِ فِي الْفَصْلِ فَقَطْ", "B": "اخْتِيَارُ الْكُلِّيَّةِ لَا يَحْتَاجُ إِلَى مُرَاعَاةِ مَيْلِ الطَّالِبِ", "C": "الْجَامِعَةُ تُسَاعِدُ الطُّلَّابَ عَلَى اكْتِسَابِ الْمَعْرِفَةِ وَالِاسْتِعْدَادِ لِلْمُسْتَقْبَلِ", "D": "الْمُنَاقَشَةُ مَعَ الْأَصْدِقَاءِ تُعَوِّضُ جَمِيعَ أَنْوَاعِ التَّعَلُّمِ", "E": "الْمَكْتَبَةُ مَكَانٌ لِلتَّسْجِيلِ فَقَطْ"},
+        "key": "C"
+    },
+    {
+        "id": 19,
+        "q": "مَا الْعَلَاقَةُ بَيْنَ الِاسْتِقْلَالِيَّةِ فِي التَّعَلُّمِ وَالِاسْتِعْدَادِ لِلْمُسْتَقْبَلِ وَفْقًا لِلنَّصِّ؟",
+        "opts": {"A": "الِاسْتِقْلَالِيَّةُ تَمْنَعُ الطَّالِبَ مِنَ التَّعَاوُنِ مَعَ الْآخَرِينَ", "B": "الِاسْتِقْلَالِيَّةُ وَاكْتِسَابُ الْمَعْرِفَةِ يُسَاعِدَانِ الطَّالِبَ عَلَى تَطْوِيرِ نَفْسِهِ وَالِاسْتِعْدَادِ لِلْحَيَاةِ الْعَمَلِيَّةِ", "C": "الِاسْتِعْدَادُ لِلْمُسْتَقْبَلِ يَعْتَمِدُ عَلَى اخْتِيَارِ الْكُلِّيَّةِ فَقَطْ", "D": "الِاسْتِقْلَالِيَّةُ تَعْنِي عَدَمَ الْحَاجَةِ إِلَى الْأَسَاتِذَةِ", "E": "التَّعَلُّمُ الْجَامِعِيُّ لَا يُسَاعِدُ عَلَى تَطْوِيرِ الْمَهَارَاتِ"},
+        "key": "B"
+    },
+    {
+        "id": 20,
+        "q": "مَا الْخُلَاصَةُ الْأَدَقُّ الَّتِي يُمْكِنُ اسْتِنْتَاجُهَا مِنَ النَّصِّ كُلِّهِ؟",
+        "opts": {"A": "الْحَيَاةُ الْجَامِعِيَّةُ تَقْتَصِرُ عَلَى اخْتِيَارِ الْكُلِّيَّةِ", "B": "التَّعْلِيمُ الْجَامِعِيُّ يَجْمَعُ بَيْنَ اخْتِيَارِ التَّخَصُّصِ وَاكْتِسَابِ الْمَعْرِفَةِ وَبِنَاءِ الِاسْتِقْلَالِيَّةِ وَالِاسْتِعْدَادِ لِلْمُسْتَقْبَلِ", "C": "الْجَامِعَةُ مَكَانٌ لِلْعَمَلِ دُونَ الدِّرَاسَةِ", "D": "الْمُهِمُّ فِي الْجَامِعَةِ هُوَ اخْتِيَارُ كُلِّيَّةٍ مَشْهُورَةٍ", "E": "يَتَعَلَّمُ الطُّلَّابُ مِنَ الْكُتُبِ فَقَطْ"},
+        "key": "B"
+    }
+]
+
+# Fungsi Builder Pop-Up Interaktif
 def w(arabic_word, db_key=None):
     key = db_key if db_key else arabic_word
     info = words_db.get(key, {
@@ -284,11 +440,9 @@ def w(arabic_word, db_key=None):
     id_ex = info.get("id_ex", "Ini adalah kata di dalam teks.")
 
     if info["type"] == "target":
-        # 17 Mufrodat Utama: Pakai Gambar + CTL
         img_url = info.get("img_url", DEFAULT_IMG)
         return f'''<span class="vocab-target">{arabic_word}<span class="tooltip-box"><img src="{img_url}" class="popup-img"><b style="font-size:17px; color:#38bdf8;">{key}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span><br><div class="example-box"><b>📌 Contoh Kalimat:</b><br><span style="font-family:'Amiri'; font-size:16px;">{ar_ex}</span><br><i style="color:#cbd5e1; font-size:11px;">"{id_ex}"</i></div><div style="font-size:11px; margin-top:5px; color:#94a3b8;">{info['ctl']}</div></span></span>'''
     else:
-        # Kata Pendukung: TANPA GAMBAR (Hanya Teks Arti, Gramatikal, & Contoh Kalimat)
         gram_info = f'<br><small style="color:#94a3b8;">({info.get("gram", "")})</small>' if "gram" in info else ""
         return f'''<span class="vocab-regular">{arabic_word}<span class="tooltip-box"><b style="font-size:16px; color:#38bdf8;">{arabic_word}</b><br><span style="color:#fde047; font-weight:bold;">{info['indo']}</span>{gram_info}<br><div class="example-box"><b>📌 Contoh Kalimat:</b><br><span style="font-family:'Amiri'; font-size:15px;">{ar_ex}</span><br><i style="color:#cbd5e1; font-size:11px;">"{id_ex}"</i></div></span></span>'''
 
@@ -324,25 +478,29 @@ if st.session_state.page == "opening":
         st.markdown("""
         <div class="feature-card">
             <h4>🖼️ Pop-up Visual Interaktif</h4>
-            <p style="font-size:14px; color:#475569;">Setiap kata dapat diklik/disorot untuk memunculkan foto visual, arti, contoh kalimat, dan tata bahasa.</p>
+            <p style="font-size:14px; color:#475569;">Sorot kata mana saja untuk memunculkan gambar visual, arti, contoh kalimat, dan tata bahasa.</p>
         </div>
         """, unsafe_allow_html=True)
 
     with col_f3:
         st.markdown("""
         <div class="feature-card">
-            <h4>📖 Mode Fokus Baca</h4>
-            <p style="font-size:14px; color:#475569;">Dilengkapi sakelar penyembunyi pop-up agar siswa dapat berlatih membaca murni di layar proyektor.</p>
+            <h4>📝 Evaluasi Pemahaman</h4>
+            <p style="font-size:14px; color:#475569;">Uji kemampuan membaca dengan 20 soal pilihan ganda interaktif beserta penilaian otomatis.</p>
         </div>
         """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Tombol Utama Masuk Pembelajaran
-    col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
-    with col_btn2:
-        if st.button("🚀 MULAI PEMBELAJARAN (ابدَأ الدِّرَاسَةَ)", use_container_width=True, type="primary"):
+    # Tombol Utama Navigasi
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        if st.button("🚀 MULAI PEMBELAJARAN (TEKS)", use_container_width=True, type="primary"):
             st.session_state.page = "learning"
+            st.rerun()
+    with col_btn2:
+        if st.button("📝 EVALUASI SOAL (20 PG)", use_container_width=True):
+            st.session_state.page = "evaluasi"
             st.rerun()
 
 
@@ -352,18 +510,20 @@ if st.session_state.page == "opening":
 elif st.session_state.page == "learning":
     
     # Navigation Top Bar
-    top_col1, top_col2 = st.columns([1, 2])
+    top_col1, top_col2, top_col3 = st.columns([1.2, 1.2, 2])
     with top_col1:
-        if st.button("⬅️ Kembali ke Halaman Utama"):
+        if st.button("⬅️ Ke Halaman Utama"):
             st.session_state.page = "opening"
             st.rerun()
-
     with top_col2:
-        focus_mode = st.toggle("📖 Mode Fokus Baca (Sembunyikan Pop-up)", value=False, help="Aktifkan ini saat siswa membaca di depan agar teks bersih dari pop-up.")
+        if st.button("📝 Ke Evaluasi Soal"):
+            st.session_state.page = "evaluasi"
+            st.rerun()
+    with top_col3:
+        focus_mode = st.toggle("📖 Mode Fokus Baca (Sembunyikan Pop-up)", value=False)
 
     st.markdown("---")
 
-    # Injeksi Mode Fokus jika Aktif
     if focus_mode:
         st.markdown("""
         <style>
@@ -437,3 +597,114 @@ elif st.session_state.page == "learning":
         with st.expander("❓ Diskusi Paragraf 3"):
             st.write("• Apa perbedaan cara belajar di kelas MA dengan di perpustakaan (*المَكْتَبَةُ*) kampus?")
             st.write("• Mengapa diskusi bersama dosen (*الأُسْتَاذُ*) sangat penting di perguruan tinggi?")
+
+
+# ==============================================================================
+# HALAMAN 3: EVALUASI PEMAHAMAN TEKS (20 SOAL PILIHAN GANDA)
+# ==============================================================================
+elif st.session_state.page == "evaluasi":
+    
+    # Navigation Top Bar
+    top_col1, top_col2 = st.columns([1.2, 3])
+    with top_col1:
+        if st.button("⬅️ Kembali ke Materi"):
+            st.session_state.page = "learning"
+            st.rerun()
+
+    st.markdown("---")
+
+    # Header Evaluasi
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 25px;">
+        <h2 style="font-family: 'Amiri', serif; color: #1e3a8a; font-size: 36px; margin-bottom: 5px;">اِخْتِبَارُ فَهْمِ الْمَقْرُوءِ</h2>
+        <h3 style="color: #334155; margin-top: 0;">Evaluasi Pemahaman Teks Bahasa Arab</h3>
+        <p style="color: #64748b;"><b>Mata Pelajaran:</b> Bahasa Arab | <b>Kelas:</b> XII MA (Genap) | <b>Bentuk:</b> Pilihan Ganda (20 Soal)</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.info("📌 **التَّعْلِيمَاتُ (Petunjuk):** اخْتَرِ الْإِجَابَةَ الصَّحِيحَةَ مِنَ الْخِيَارَاتِ أ، ب، ج، د، أَوْ هـ! *(Pilihlah satu jawaban yang paling tepat dari pilihan A, B, C, D, atau E!)*")
+
+    # Form Soal Evaluasi
+    with st.form(key="quiz_form"):
+        for item in quiz_data:
+            q_num = item["id"]
+            q_text = item["q"]
+            opts = item["opts"]
+            
+            st.markdown(f"""
+            <div class="question-card">
+                <div style="color: #2563eb; font-weight: bold; font-size: 14px; margin-bottom: 5px;">Soal Nomor {q_num} dari 20</div>
+                <div class="question-arabic">{q_num}. {q_text}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Format Pilihan Jawaban
+            formatted_opts = [f"{k}. {v}" for k, v in opts.items()]
+            
+            # Default index selection
+            saved_ans = st.session_state.user_answers.get(q_num, None)
+            default_idx = None
+            if saved_ans:
+                default_idx = ["A", "B", "C", "D", "E"].index(saved_ans)
+                
+            choice = st.radio(
+                label=f"Pilih Jawaban Soal {q_num}:",
+                options=formatted_opts,
+                index=default_idx,
+                key=f"q_{q_num}",
+                label_visibility="collapsed"
+            )
+            
+            if choice:
+                st.session_state.user_answers[q_num] = choice.split(".")[0]
+            st.write("")
+
+        submit_btn = st.form_submit_button(label="🎯 Kirim Jawaban & Lihat Hasil", type="primary", use_container_width=True)
+
+        if submit_btn:
+            st.session_state.quiz_submitted = True
+            st.rerun()
+
+    # Hasil Skor dan Koreksi
+    if st.session_state.quiz_submitted:
+        score = 0
+        correct_count = 0
+        
+        for item in quiz_data:
+            q_num = item["id"]
+            user_ans = st.session_state.user_answers.get(q_num, "")
+            if user_ans == item["key"]:
+                correct_count += 1
+                
+        score = int((correct_count / len(quiz_data)) * 100)
+
+        st.markdown("---")
+        st.markdown(f"""
+        <div class="score-card">
+            <h2 style="margin: 0; font-size: 28px;">📊 Hasil Evaluasi Pemahaman</h2>
+            <h1 style="font-size: 64px; margin: 10px 0; color: #fde047;">{score} / 100</h1>
+            <p style="font-size: 18px; margin: 0;">Kamu menjawab <b>{correct_count}</b> benar dari <b>20 soal</b>.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Rincian Pembahasan Jawaban
+        st.subheader("📋 Rincian & Kunci Jawaban Soal:")
+        for item in quiz_data:
+            q_num = item["id"]
+            user_ans = st.session_state.user_answers.get(q_num, "Belum diisi")
+            key_ans = item["key"]
+            is_correct = (user_ans == key_ans)
+            
+            icon = "✅" if is_correct else "❌"
+            color = "green" if is_correct else "red"
+            
+            with st.expander(f"{icon} Soal #{q_num}: {item['q'][:50]}..."):
+                st.markdown(f"**Pertanyaan:** {item['q']}")
+                st.markdown(f"**Jawaban Kamu:** :{color}[{user_ans}]")
+                st.markdown(f"**Kunci Jawaban:** **{key_ans}** ({item['opts'][key_ans]})")
+
+        st.write("")
+        if st.button("🔄 Ulangi Evaluasi Soal", type="secondary"):
+            st.session_state.quiz_submitted = False
+            st.session_state.user_answers = {}
+            st.rerun()
