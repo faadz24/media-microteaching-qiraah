@@ -1,5 +1,6 @@
 import streamlit as st
-from urllib.parse import quote
+from gtts import gTTS
+import io
 
 # 1. Konfigurasi Halaman
 st.set_page_config(
@@ -282,7 +283,7 @@ words_db = {
     "الدُّرُوسَ": {"type": "regular", "indo": "Pelajaran-pelajaran / Perkuliahan", "gram": "Isim Jamak Taksir", "ar_ex": "يَفْهَمُ الطَّالِبُ الدُّرُوسَ جَيِّدًا.", "id_ex": "Siswa paham pelajaran-pelajaran dengan baik."},
     "الفَصْلِ": {"type": "regular", "indo": "Ruang Kelas", "gram": "Isim Tempat", "ar_ex": "يَجْلِسُ الطُّلَّابُ فِي الفَصْلِ.", "id_ex": "Para siswa duduk di ruang kelas."},
     "مَعَ": {"type": "regular", "indo": "Bersama / Dengan", "gram": "Zaraf Makan", "ar_ex": "يَتَنَاقَشُ الطَّالِبُ مَعَ الأُسْتَاذِ.", "id_ex": "Siswa berdiskusi bersama dosen."},
-    "وَيَذْهَبُونَ": {"type": "regular", "indo": "Dan mereka pergi", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَذْهَبُونَ إِلَى المَكْتَبَةِ كُلَّ يَوْمٍ.", "id_ex": "Dan mereka pergi ke perpustakaan setiap hari."},
+    "وَيَذْهَبُونَ": {"type": "regular", "indo": "Dan mereka pergi", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَذْهَبُونَ إِلَى المَكْتَبَةِ كُلَّ يَوْمٍ.", "id_ex": "Dan meeka pergi ke perpustakaan setiap hari."},
     "لِلْقِرَاءَةِ": {"type": "regular", "indo": "Untuk membaca", "gram": "Harf Jar + Masdar", "ar_ex": "يَذْهَبُ إِلَى المَكْتَبَةِ لِلْقِرَاءَةِ.", "id_ex": "Ia pergi ke perpustakaan untuk membaca."},
     "وَالبَحْثِ": {"type": "regular", "indo": "Dan meriset / mencari data", "gram": "Isim Masdar", "ar_ex": "يَقُومُ الطُّلَّابُ بِالقِرَاءَةِ وَالبَحْثِ.", "id_ex": "Para siswa melakukan pembacaan dan penelitian."},
     "عَنِ": {"type": "regular", "indo": "Tentang / Dari", "gram": "Harf Jar", "ar_ex": "يَبْحَثُ الطَّالِبُ عَنِ المَعْلُومَاتِ.", "id_ex": "Siswa mencari informasi."},
@@ -539,7 +540,7 @@ elif st.session_state.page == "learning":
     else:
         st.caption("👉 **Petunjuk Guru:** Klik/Sorot kata mana saja pada teks untuk melihat Gambar Visual, Arti, Contoh Kalimat, & CTL.")
 
-    # SIDEBAR BANK MUFRODAT TARGET + FITUR AUDIO PELAFALAN
+    # SIDEBAR BANK MUFRODAT TARGET + FITUR AUDIO GTTS (BEBAS BLOKIR)
     target_keys = [k for k, v in words_db.items() if v.get("type") == "target"]
     st.sidebar.header("📌 Bank 17 Kosa Kata Wajib")
     selected_word = st.sidebar.selectbox("Bedah Mufrodat Utama via Sidebar:", target_keys)
@@ -549,10 +550,16 @@ elif st.session_state.page == "learning":
         st.sidebar.image(info["img_url"], use_container_width=True)
         st.sidebar.markdown(f"### {selected_word}")
         
-        # FITUR BARU: Pemutar Audio Text-to-Speech Bahasa Arab di Sidebar
-        audio_url = f"https://translate.google.com/translate_tts?ie=UTF-8&q={quote(selected_word)}&tl=ar&client=tw-ob"
+        # PEMUTAR AUDIO BEBAS BLOKIR VIA gTTS
         st.sidebar.markdown("🔊 **Pelafalan Audio (الاستماع):**")
-        st.sidebar.audio(audio_url)
+        try:
+            tts = gTTS(text=selected_word, lang='ar')
+            fp = io.BytesIO()
+            tts.write_to_fp(fp)
+            fp.seek(0)
+            st.sidebar.audio(fp, format='audio/mp3')
+        except Exception:
+            st.sidebar.warning("⚠️ Suara tidak dapat diputar saat offline.")
         
         st.sidebar.markdown(f"**Arti:** {info['indo']}")
         st.sidebar.markdown(f"**📌 Contoh Kalimat:**\n- {info['ar_ex']}\n  *( “{info['id_ex']}” )*")
