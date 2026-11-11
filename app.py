@@ -205,8 +205,8 @@ st.markdown("""
     /* MEMBESARKAN FONT PILIHAN JAWABAN RADIO BUTTON STREAMLIT */
     div[role="radiogroup"] label p {
         font-family: 'Amiri', serif, sans-serif !important;
-        font-size: 23px !important;
-        line-height: 2.0 !important;
+        font-size: 21px !important;
+        line-height: 1.8 !important;
         color: #0f172a !important;
         font-weight: 500 !important;
     }
@@ -283,7 +283,7 @@ words_db = {
     "الدُّرُوسَ": {"type": "regular", "indo": "Pelajaran-pelajaran / Perkuliahan", "gram": "Isim Jamak Taksir", "ar_ex": "يَفْهَمُ الطَّالِبُ الدُّرُوسَ جَيِّدًا.", "id_ex": "Siswa paham pelajaran-pelajaran dengan baik."},
     "الفَصْلِ": {"type": "regular", "indo": "Ruang Kelas", "gram": "Isim Tempat", "ar_ex": "يَجْلِسُ الطُّلَّابُ فِي الفَصْلِ.", "id_ex": "Para siswa duduk di ruang kelas."},
     "مَعَ": {"type": "regular", "indo": "Bersama / Dengan", "gram": "Zaraf Makan", "ar_ex": "يَتَنَاقَشُ الطَّالِبُ مَعَ الأُسْتَاذِ.", "id_ex": "Siswa berdiskusi bersama dosen."},
-    "وَيَذْهَبُونَ": {"type": "regular", "indo": "Dan mereka pergi", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَذْهَبُونَ إِلَى المَكْتَبَةِ كُلَّ يَوْمٍ.", "id_ex": "Dan meeka pergi ke perpustakaan setiap hari."},
+    "وَيَذْهَبُونَ": {"type": "regular", "indo": "Dan mereka pergi", "gram": "Fi'il Mudhari' Jamak", "ar_ex": "وَيَذْهَبُونَ إِلَى المَكْتَبَةِ كُلَّ يَوْمٍ.", "id_ex": "Dan mereka pergi ke perpustakaan setiap hari."},
     "لِلْقِرَاءَةِ": {"type": "regular", "indo": "Untuk membaca", "gram": "Harf Jar + Masdar", "ar_ex": "يَذْهَبُ إِلَى المَكْتَبَةِ لِلْقِرَاءَةِ.", "id_ex": "Ia pergi ke perpustakaan untuk membaca."},
     "وَالبَحْثِ": {"type": "regular", "indo": "Dan meriset / mencari data", "gram": "Isim Masdar", "ar_ex": "يَقُومُ الطُّلَّابُ بِالقِرَاءَةِ وَالبَحْثِ.", "id_ex": "Para siswa melakukan pembacaan dan penelitian."},
     "عَنِ": {"type": "regular", "indo": "Tentang / Dari", "gram": "Harf Jar", "ar_ex": "يَبْحَثُ الطَّالِبُ عَنِ المَعْلُومَاتِ.", "id_ex": "Siswa mencari informasi."},
@@ -507,17 +507,13 @@ if st.session_state.page == "opening":
 # ==============================================================================
 elif st.session_state.page == "learning":
     
-    # Navigation Top Bar
-    top_col1, top_col2, top_col3 = st.columns([1.2, 1.2, 2])
+    # Navigation Top Bar (Hanya Tombol Kembali & Mode Fokus)
+    top_col1, top_col2 = st.columns([1.5, 2])
     with top_col1:
         if st.button("⬅️ Ke Halaman Utama"):
             st.session_state.page = "opening"
             st.rerun()
     with top_col2:
-        if st.button("📝 Ke Evaluasi Soal"):
-            st.session_state.page = "evaluasi"
-            st.rerun()
-    with top_col3:
         focus_mode = st.toggle("📖 Mode Fokus Baca (Sembunyikan Pop-up)", value=False)
 
     st.markdown("---")
@@ -540,7 +536,7 @@ elif st.session_state.page == "learning":
     else:
         st.caption("👉 **Petunjuk Guru:** Klik/Sorot kata mana saja pada teks untuk melihat Gambar Visual, Arti, Contoh Kalimat, & CTL.")
 
-    # SIDEBAR BANK MUFRODAT TARGET + FITUR AUDIO GTTS (BEBAS BLOKIR)
+    # SIDEBAR BANK MUFRODAT TARGET + FITUR AUDIO GTTS
     target_keys = [k for k, v in words_db.items() if v.get("type") == "target"]
     st.sidebar.header("📌 Bank 17 Kosa Kata Wajib")
     selected_word = st.sidebar.selectbox("Bedah Mufrodat Utama via Sidebar:", target_keys)
@@ -608,6 +604,16 @@ elif st.session_state.page == "learning":
             st.write("• Apa perbedaan cara belajar di kelas MA dengan di perpustakaan (*المَكْتَبَةُ*) kampus?")
             st.write("• Mengapa diskusi bersama dosen (*الأُسْتَاذُ*) sangat penting di perguruan tinggi?")
 
+    # TOMBOL EVALUASI DIPINDAH KE PALING BAWAH HALAMAN BACAAN
+    st.markdown("---")
+    st.markdown("<h4 style='text-align: center; color: #1e3a8a;'>Sudah Selesai Membaca & Berdiskusi?</h4>", unsafe_allow_html=True)
+    
+    col_eval_btn1, col_eval_btn2, col_eval_btn3 = st.columns([1, 2, 1])
+    with col_eval_btn2:
+        if st.button("📝 LANJUT KE EVALUASI SOAL (الاِخْتِبَارُ)", type="primary", use_container_width=True):
+            st.session_state.page = "evaluasi"
+            st.rerun()
+
 
 # ==============================================================================
 # HALAMAN 3: EVALUASI KOREKSI LANGSUNG PER NOMOR
@@ -632,7 +638,7 @@ elif st.session_state.page == "evaluasi":
     </div>
     """, unsafe_allow_html=True)
 
-    st.info("📌 **التَّعْلِيمَاتُ (Petunjuk Guru & Siswa):** Pilihlah opsi jawaban per nomor. **Hasil koreksi, apresiasi, & pembahasan akan langsung muncul di bawah nomor tersebut** untuk bahan diskusi bersama di kelas!")
+    st.info("📌 **التَّعْلِيمَاتُ (Petunjuk Guru & Siswa):** Pilihlah opsi jawaban per nomor. **Hasil koreksi & apresiasi akan langsung muncul di bawah nomor tersebut** untuk bahan diskusi bersama di kelas!")
 
     # Ringkasan Skor Real-Time
     answered_count = len(st.session_state.user_answers)
@@ -675,8 +681,8 @@ elif st.session_state.page == "evaluasi":
             label_visibility="collapsed"
         )
 
-        # Koreksi Langsung & Apresiasi Emoticon Per Nomor
-       if choice:
+        # Koreksi Langsung & Apresiasi Emoticon Per Nomor (Indensasi & Syntax Sudah Diperbaiki)
+        if choice:
             user_choice_key = choice.split(".")[0]
             st.session_state.user_answers[q_num] = user_choice_key
 
