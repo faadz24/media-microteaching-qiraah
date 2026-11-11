@@ -1,4 +1,5 @@
 import streamlit as st
+from urllib.parse import quote
 
 # 1. Konfigurasi Halaman
 st.set_page_config(
@@ -200,7 +201,7 @@ st.markdown("""
         line-height: 1.8;
     }
 
-    /* REVISI 2: MEMBESARKAN FONT PILIHAN JAWABAN RADIO BUTTON STREAMLIT */
+    /* MEMBESARKAN FONT PILIHAN JAWABAN RADIO BUTTON STREAMLIT */
     div[role="radiogroup"] label p {
         font-family: 'Amiri', serif, sans-serif !important;
         font-size: 21px !important;
@@ -448,7 +449,7 @@ def w(arabic_word, db_key=None):
 
 
 # ==============================================================================
-# HALAMAN 1: OPENING / WELCOME SCREEN (REVISI 1: HANYA ADA TOMBOL MULAI PEMBELAJARAN)
+# HALAMAN 1: OPENING / WELCOME SCREEN
 # ==============================================================================
 if st.session_state.page == "opening":
     st.markdown('<h1 class="main-title">🎓 Smart Qira\'ah Reader</h1>', unsafe_allow_html=True)
@@ -485,14 +486,14 @@ if st.session_state.page == "opening":
     with col_f3:
         st.markdown("""
         <div class="feature-card">
-            <h4>📝 Evaluasi Pemahaman Live</h4>
-            <p style="font-size:14px; color:#475569;">Latihan 20 soal pilihan ganda interaktif dengan koreksi langsung per nomor untuk diskusi kelas.</p>
+            <h4>🔊 Audio Pelafalan & Evaluasi</h4>
+            <p style="font-size:14px; color:#475569;">Dilengkapi pemutar audio mufrodat di sidebar dan latihan 20 soal pilihan ganda interaktif.</p>
         </div>
         """, unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # REVISI 1: HANYA TOMBOL MULAI PEMBELAJARAN
+    # Tombol Utama Navigasi Halaman Depan
     col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
     with col_btn2:
         if st.button("🚀 MULAI PEMBELAJARAN (ابدَأ الدِّرَاسَةَ)", use_container_width=True, type="primary"):
@@ -538,7 +539,7 @@ elif st.session_state.page == "learning":
     else:
         st.caption("👉 **Petunjuk Guru:** Klik/Sorot kata mana saja pada teks untuk melihat Gambar Visual, Arti, Contoh Kalimat, & CTL.")
 
-    # Sidebar Bank Mufrodat Target
+    # SIDEBAR BANK MUFRODAT TARGET + FITUR AUDIO PELAFALAN
     target_keys = [k for k, v in words_db.items() if v.get("type") == "target"]
     st.sidebar.header("📌 Bank 17 Kosa Kata Wajib")
     selected_word = st.sidebar.selectbox("Bedah Mufrodat Utama via Sidebar:", target_keys)
@@ -547,6 +548,12 @@ elif st.session_state.page == "learning":
         info = words_db[selected_word]
         st.sidebar.image(info["img_url"], use_container_width=True)
         st.sidebar.markdown(f"### {selected_word}")
+        
+        # FITUR BARU: Pemutar Audio Text-to-Speech Bahasa Arab di Sidebar
+        audio_url = f"https://translate.google.com/translate_tts?ie=UTF-8&q={quote(selected_word)}&tl=ar&client=tw-ob"
+        st.sidebar.markdown("🔊 **Pelafalan Audio (الاستماع):**")
+        st.sidebar.audio(audio_url)
+        
         st.sidebar.markdown(f"**Arti:** {info['indo']}")
         st.sidebar.markdown(f"**📌 Contoh Kalimat:**\n- {info['ar_ex']}\n  *( “{info['id_ex']}” )*")
         st.sidebar.info(info['ctl'])
@@ -596,7 +603,7 @@ elif st.session_state.page == "learning":
 
 
 # ==============================================================================
-# HALAMAN 3: EVALUASI KOREKSI LANGSUNG PER NOMOR (REVISI 3 & REVISI 4)
+# HALAMAN 3: EVALUASI KOREKSI LANGSUNG PER NOMOR
 # ==============================================================================
 elif st.session_state.page == "evaluasi":
     
@@ -661,7 +668,7 @@ elif st.session_state.page == "evaluasi":
             label_visibility="collapsed"
         )
 
-        # REVISI 3 & 4: KOREKSI LANGSUNG & APRESIASI EMOTICON PER NOMOR
+        # Koreksi Langsung & Apresiasi Emoticon Per Nomor
         if choice:
             user_choice_key = choice.split(".")[0]
             st.session_state.user_answers[q_num] = user_choice_key
